@@ -7,6 +7,57 @@ their root `AGENTS.md`; they do not copy it.
 This repository is public. Do not add private hostnames, paths, account names,
 credentials or personal contact details here.
 
+## Human overview
+
+A short map for people. It describes where guidance lives and the order to
+read it in. The rules themselves are in the files listed.
+
+```text
+bardphysicslab/engineering-standards    shared engineering guidance (this repository)
+├── README.md                    what to read, which commit governs, precedence, changes
+├── development-workflow.md      preflight, project compliance, execution, human checkpoint, recovery
+├── agent-practice.md            decisions, change discipline, verification, architectural self-check
+├── checkouts-and-worktrees.md   checkouts, worktrees, preservation, checkpoints, daily closeout
+├── agent-coordination.md        roles, manual relay, independent review, authorization boundaries
+├── AGENTS.md                    instructions for editing this repository itself
+└── CLAUDE.md                    compatibility pointer to AGENTS.md
+
+bardphysicslab/bardbox                  BardBox platform guidance (BardBox projects)
+├── AGENTS.md                    BardBox-specific change rules
+├── ARCHITECTURE.md              BardBox architecture and an index of technical standards
+└── docs/                        the technical standards, read when a task touches them
+
+<project repository>
+├── AGENTS.md                    entry point: local facts and rules, pointer to shared guidance
+├── ARCHITECTURE.md              the project's architecture, when present
+├── README.md                    purpose, setup and usage
+├── docs/ and other references   documents that AGENTS.md or ARCHITECTURE.md require
+├── source and tests             the implementation
+└── CLAUDE.md                    compatibility pointer to AGENTS.md
+```
+
+Reading order for a task:
+
+1. The project's `AGENTS.md`.
+2. The five shared files above, at one resolved commit of this repository.
+3. For a BardBox project, bardbox's `AGENTS.md`, `ARCHITECTURE.md` and the
+   task-relevant technical standards, at one resolved bardbox commit.
+4. The project's `ARCHITECTURE.md`, when present, and the references it
+   requires.
+5. The source and tests.
+
+This is a reading order, not an override hierarchy. When rules conflict,
+[Precedence](#precedence) decides. In brief: the maintainer's task
+instructions set the scope, and authorization covers only the actions it
+names. For safety, data integrity, approvals, environment isolation and
+sources of truth, the most restrictive rule wins. Otherwise a topic-specific
+standard governs its topic, and a repository's own files govern its local
+facts. A repository may deviate from a shared rule only by naming it and
+giving the reason; any other conflict means stop and ask.
+
+A link or a file listing loads nothing; each file has to be opened and
+read. A task keeps the governing commits it recorded when it started.
+
 ## Scope
 
 This repository holds the reusable requirements: development workflow,
