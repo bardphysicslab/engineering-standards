@@ -67,6 +67,18 @@ and daily closeout. Project-specific architecture,
 technical contracts and local rules stay in the repository that owns them.
 BardBox device and platform standards stay in `bardphysicslab/bardbox`.
 
+## Bard institutional web policy
+
+For current and future BardBox and Bard Physics Lab projects, apply Bard's
+[web application and hosting requirements](docs/bard-it/web-application-and-hosting-requirements.pdf)
+wherever applicable. Read the [applicability and service guidance](docs/bard-it/README.md)
+before web application, hosting, email, messaging, SMS, authentication or
+monitoring work. The PDF is the original written policy; meeting suggestions
+remain separate. Existing projects require evidenced gap assessment rather
+than assumed compliance. Use links to this maintained location instead of
+creating independent policy copies. Consolidation and continuation:
+[issue #5](https://github.com/bardphysicslab/engineering-standards/issues/5).
+
 ## What to read
 
 Read all five shared files before planning, proposing, reviewing, delegating

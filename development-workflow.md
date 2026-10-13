@@ -45,6 +45,15 @@ Before implementation, read:
 2. `ARCHITECTURE.md`
 3. Any relevant documents referenced by them
 
+For BardBox and Bard Physics Lab web applications, hosting, email, messaging,
+SMS, authentication or monitoring, also read
+[Bard applicability and service guidance](docs/bard-it/README.md) and the
+[original institutional requirements](docs/bard-it/web-application-and-hosting-requirements.pdf).
+Apply the policy to current and future projects wherever applicable; preserve
+its conditional language and keep meeting suggestions distinct from mandates.
+Assess existing-project gaps in the owning GitHub tracker. Resolve uncertain
+applicability with Bard IT/PR rather than assuming compliance or exemptions.
+
 Check the proposed task against those documents.
 
 Specifically ask:
