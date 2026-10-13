@@ -15,9 +15,9 @@ read it in. The rules themselves are in the files listed.
 ```text
 bardphysicslab/engineering-standards    shared engineering guidance (this repository)
 ├── README.md                    what to read, which commit governs, precedence, changes
-├── development-workflow.md      preflight, project compliance, execution, human checkpoint, recovery
+├── development-workflow.md      preflight, compliance, execution, checkpoint, recovery, delivery sequence
 ├── agent-practice.md            decisions, change discipline, verification, architectural self-check
-├── checkouts-and-worktrees.md   checkouts, worktrees, preservation, checkpoints, daily closeout
+├── checkouts-and-worktrees.md   single checkout, preservation, artifacts, checkpoints, daily closeout
 ├── agent-coordination.md        roles, manual relay, independent review, authorization boundaries
 ├── AGENTS.md                    instructions for editing this repository itself
 └── CLAUDE.md                    compatibility pointer to AGENTS.md
@@ -61,8 +61,9 @@ read. A task keeps the governing commits it recorded when it started.
 ## Scope
 
 This repository holds the reusable requirements: development workflow,
-verification, agent practice and coordination, checkouts and worktrees,
-preservation, checkpoints, and daily closeout. Project-specific architecture,
+verification, the delivery sequence, agent practice and coordination,
+checkouts and worktrees, preservation of work and artifacts, checkpoints,
+and daily closeout. Project-specific architecture,
 technical contracts and local rules stay in the repository that owns them.
 BardBox device and platform standards stay in `bardphysicslab/bardbox`.
 
