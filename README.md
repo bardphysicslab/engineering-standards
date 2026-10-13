@@ -67,6 +67,32 @@ and daily closeout. Project-specific architecture,
 technical contracts and local rules stay in the repository that owns them.
 BardBox device and platform standards stay in `bardphysicslab/bardbox`.
 
+Ownership follows the reason a requirement applies:
+
+| Home | Owns | Examples |
+| --- | --- | --- |
+| `engineering-standards` | Requirements shared because these are Bard Physics Lab projects | Engineering workflow, review, continuity, institutional web/hosting policy and cross-project service guidance |
+| `bardbox` | Requirements shared because a project uses the BardBox platform | Device conventions, firmware interfaces, communication contracts, reusable platform components and platform architecture |
+| Individual project repository | Facts and decisions specific to that application | Application architecture, deployment setup, project-specific alert thresholds, acceptance evidence and operational procedures |
+
+Keep one maintained owner for each document; consumers link to it. A shared
+institutional rule stays here even when BardBox consumes it. Its concrete
+BardBox implementation belongs in BardBox; a project's implementation and
+compliance evidence belong in that project. Promote a local rule only when
+its reusable scope is established, updating the old location to a pointer.
+
+## Bard institutional web policy
+
+For current and future BardBox and Bard Physics Lab projects, apply Bard's
+[web application and hosting requirements](docs/bard-it/web-application-and-hosting-requirements.pdf)
+wherever applicable. Read the [applicability and service guidance](docs/bard-it/README.md)
+before web application, hosting, email, messaging, SMS, authentication or
+monitoring work. The PDF is the original written policy; meeting suggestions
+remain separate. Existing projects require evidenced gap assessment rather
+than assumed compliance. Use links to this maintained location instead of
+creating independent policy copies. Consolidation and continuation:
+[issue #5](https://github.com/bardphysicslab/engineering-standards/issues/5).
+
 ## What to read
 
 Read all five shared files before planning, proposing, reviewing, delegating
