@@ -59,11 +59,12 @@ If there is a conflict or ambiguity, stop and resolve it before coding.
 
 ## 3. Execution
 
-Work from a known-good state.
+Work from a known-good state: the current `main` (section 6).
 
 For each task:
 
-Define done → Design → Decompose → Implement → Verify → Commit
+Define done → Design → Decompose → Implement → Verify → Commit →
+Review → Integrate
 
 Each implementation step should be small enough to:
 - understand,
@@ -111,6 +112,33 @@ stop adding functionality.
 
 Summarize → Verify → Return to a known-good state → Re-scope →
 Continue with the smallest verifiable step.
+
+## 6. Delivery Sequence
+
+Work is delivered one feature at a time, in the repository's one canonical
+checkout (`checkouts-and-worktrees.md`, rules 1 to 4).
+
+- **`main` is the baseline.** It holds the last tested and independently
+  reviewed working version. Nobody pushes unreviewed work to `main`.
+- **One active feature branch.** Start it from the current `main`. The
+  implementing agent implements and tests on it, then hands off a clean,
+  known commit with its evidence. The reviewing agent reviews that exact
+  head. Findings are fixed on the same branch and the new head is reviewed.
+- **Integrate before the next feature.** Reviewed, passing work is merged
+  into `main` and pushed before the next feature branch starts. Do not
+  accumulate completed but unmerged branches.
+- **Distinct steps.** Implementation, review, merge and deployment are
+  separate steps with separate approvals. A passing review does not by
+  itself authorize a merge; passing tests do not show deployment.
+- **Exceptions are named.** If a task genuinely cannot follow this sequence,
+  name the concrete conflict to the maintainer instead of bypassing it.
+
+### Reusing hardware evidence
+
+Completed hardware acceptance evidence stays valid for behavior that has not
+changed. Repeat a hardware acceptance check only for a concrete changed
+behavior: name the changed invariant and why the existing evidence cannot
+cover it. Record which existing evidence was reused and at which commit.
 
 ## Core Principle
 

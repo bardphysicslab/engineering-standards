@@ -9,10 +9,11 @@ focused-test and completion-report rules were promoted from Beaker. See
 
 ## Decisions and proportional workflow
 
-Use **Define done → Design → Decompose → Implement → Verify → Commit** for
-meaningful new work. Generating code with an agent is one way to implement,
-not a separate step. Keep changes small enough for human review, with durable
-notes and verified recovery checkpoints. Course reference:
+Use **Define done → Design → Decompose → Implement → Verify →
+Commit**, then review and integrate (`development-workflow.md`, section 6),
+for meaningful new work. Generating code with an agent is one way to
+implement, not a separate step. Keep changes small enough for human review,
+with durable notes and verified recovery checkpoints. Course reference:
 [CMU Agentic Software Development](https://github.com/CMU-17-214/f2026).
 Consult relevant material before attributing a rule to it; the course is a
 learning reference, not an additional mandatory rulebook.
@@ -83,6 +84,9 @@ the recovery checkpoint, not to continue generating ever-larger changes.
   decision; do not run them automatically. Broaden tests when a concrete risk
   warrants it, not as an unbounded ritual, and explain the reason in plain
   language.
+- Reuse completed hardware acceptance evidence for unchanged behavior. A
+  repeated hardware check names the changed invariant it covers
+  (`development-workflow.md`, "Reusing hardware evidence").
 - Every material change checks documentation impact, including an explicit
   “no documentation change required” result when appropriate. Update affected
   user guidance, architecture/data flow, setup/maintenance instructions,

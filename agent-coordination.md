@@ -39,6 +39,13 @@ each need their own explicit authorization. Sources: `agent-practice.md`,
 "Verification and documentation"; `checkouts-and-worktrees.md`, rules 9
 and 10.
 
+The sequence is one active feature branch at a time: the implementing agent
+implements and tests, the reviewing agent reviews the exact head, and
+reviewed passing work lands in `main` before the next feature starts. Agents
+work one writer at a time in the canonical checkout and do not start
+concurrent agents or new worktrees. Sources: `development-workflow.md`,
+section 6; `checkouts-and-worktrees.md`, rules 1 to 4.
+
 ## Authorization, environment isolation and deployment
 
 - Keep development, test and production data, credentials, targets and state
@@ -58,6 +65,7 @@ and 10.
   `README.md`, "Which version governs".
 - Checkpoint and closeout records, dispositions and daily closure follow
   `checkouts-and-worktrees.md`, rule 10.
-- In a shared checkout, edit only files your role owns. A repository's root
-  files name its coordination files and their owners. Sources:
-  `checkouts-and-worktrees.md`, rule 4; `README.md`, "Precedence", rule 3.
+- One writer at a time in the canonical checkout; hand off a clean, known
+  commit. A repository's root files name its coordination files and their
+  owners. Sources: `checkouts-and-worktrees.md`, rule 4; `README.md`,
+  "Precedence", rule 3.
