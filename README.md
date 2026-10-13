@@ -67,6 +67,20 @@ and daily closeout. Project-specific architecture,
 technical contracts and local rules stay in the repository that owns them.
 BardBox device and platform standards stay in `bardphysicslab/bardbox`.
 
+Ownership follows the reason a requirement applies:
+
+| Home | Owns | Examples |
+| --- | --- | --- |
+| `engineering-standards` | Requirements shared because these are Bard Physics Lab projects | Engineering workflow, review, continuity, institutional web/hosting policy and cross-project service guidance |
+| `bardbox` | Requirements shared because a project uses the BardBox platform | Device conventions, firmware interfaces, communication contracts, reusable platform components and platform architecture |
+| Individual project repository | Facts and decisions specific to that application | Application architecture, deployment setup, project-specific alert thresholds, acceptance evidence and operational procedures |
+
+Keep one maintained owner for each document; consumers link to it. A shared
+institutional rule stays here even when BardBox consumes it. Its concrete
+BardBox implementation belongs in BardBox; a project's implementation and
+compliance evidence belong in that project. Promote a local rule only when
+its reusable scope is established, updating the old location to a pointer.
+
 ## Bard institutional web policy
 
 For current and future BardBox and Bard Physics Lab projects, apply Bard's

@@ -16,7 +16,7 @@ The following reflects the maintainer's supplied notes from the conversation wit
 
 For BardBox and Bard Physics Lab projects, consider Bard’s existing services before recommending new vendors. Regroup should be the first SMS option evaluated before Twilio, provided it supports the project's integration and delivery needs. These preferences reflect the user's conversation with Bard CIO David Brangaitis on October 13, 2026; they are separate from the written hosting requirements.
 
-# Bard services and contacts
+### Bard services and contacts
 
 | Service or person | Role | Guidance for future projects |
 | - | - | - |
@@ -36,13 +36,13 @@ For BardBox and Bard Physics Lab projects, consider Bard’s existing services b
 
 Twilio is the alternative being compared with Regroup, not a recorded Bard service. Bard use of Zabbix has not been confirmed; an earlier chat interpretation should not be treated as evidence.
 
-# Hosting and alert details to confirm
+### Hosting and alert details to confirm
 
 A static outbound IP is allowlisted in the existing Linode arrangement discussed with David. Confirm who maintains that allowlist and which service it protects before changing hosting. David also said a Bard public IP brings a system into Bard audit scope; coordinate the applicable scope with IT.
 
 For after-hours freezer incidents, define detection thresholds, notification recipients, acknowledgement deadlines, and escalation ownership. A Google Chat webhook delivers a message to a space; it does not establish that someone has acted on it.
 
-# BardBox development baseline
+### BardBox development baseline
 
 The user directed that Bard's web application and hosting requirements apply across BardBox, beyond RKC. The supplied PDF was revised February 26, 2025. Preserve the distinction between required, recommended, ideal, and conditional provisions.
 
