@@ -57,8 +57,10 @@ documentation and the current Codex app. Recheck it when either tool changes.
      outside `/tmp`; or
    - held in the tool's recoverable snapshot.
 
-   A bundle or patch preserves commits or tracked changes only. Untracked
-   and ignored files and build artifacts need their own copy (rule 11).
+   A bundle preserves committed content, including tracked binaries. A
+   patch preserves tracked changes, and binary changes only when made with
+   `git diff --binary`. Neither preserves untracked or ignored files, such
+   as private build outputs; those need their own copy (rule 11).
 6. **No secrets or live state in task checkouts.** Do not copy credentials,
    `.env` files, live state, backups or production logs into a task checkout.
    That includes `.worktreeinclude`: both tools copy matching ignored files
@@ -168,7 +170,8 @@ documentation and the current Codex app. Recheck it when either tool changes.
     branch or app session. Record a SHA-256 checksum for each file, and keep
     a recovery copy verified by recomputing those checksums. State whether
     each copy is on the same machine or off-machine: a same-machine copy
-    survives deleting a checkout but not losing the disk. A Git bundle does
-    not preserve binaries or untracked files. Name stores by role in public
+    survives deleting a checkout but not losing the disk. A Git bundle
+    preserves tracked files, including tracked binaries, but not untracked
+    or ignored build outputs. Name stores by role in public
     repositories, not by private path. Never commit secrets or private data
     to preserve them (rule 6).
