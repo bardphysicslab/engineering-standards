@@ -31,7 +31,7 @@ For BardBox and Bard Physics Lab projects, consider Bard’s existing services b
 | CAS, SAML, Google authentication | Sign-in methods Bard IT is familiar with. | Coordinate the appropriate institutional SSO integration before choosing a separate identity provider. No specific method selected. |
 | Bard IT and Cloudflare | IT controls DNS and can provide Cloudflare origin certificates under the written policy. | Coordinate domains, DNS, proxy setup, certificates, sender permissions, and access requirements. |
 | David Brangaitis | Bard CIO; maintainer of the web application and hosting requirements. | Institutional IT contact: [dbrangaitis@bard.edu](mailto:dbrangaitis@bard.edu). |
-| Automated Logic WebCTRL | Building automation system supplied as a reference. | Reference only; use at Bard and integration requirements have not been established in these notes. |
+| Automated Logic WebCTRL | Building automation system operated at Bard by B&G, with Eastern Heating and Cooling as vendor, per David’s October 13 message. | Possible consumer of BardBox sensor data while B&G retains its existing dashboard; interface, compatibility, access, cost and support arrangements remain unverified. No integration selected or authorized. |
 | AVTECH environment monitors | Environmental monitoring products supplied as a reference. | Reference only; procurement or adoption has not been established. |
 
 Twilio is the alternative being compared with Regroup, not a recorded Bard service. Bard use of Zabbix has not been confirmed; an earlier chat interpretation should not be treated as evidence.
@@ -50,6 +50,29 @@ Apply the policy to planning, implementation, hosting, and release review. Key p
 
 Use the PDF for exact wording and conditions. Clarify applicability to internal tools with Bard IT/PR, especially the stated shared-server restriction, identity/form data requirements, and the unspecified WCAG version/conformance target. Hosting and notification suggestions above do not override the written policy.
 
+
+## WebCTRL clarification and possible integration — October 15, 2026
+
+Source: David’s October 13 message, supplied by the maintainer as a screenshot
+on October 15, identifies the pictured WebCTRL output as operated by B&G with
+vendor Eastern Heating and Cooling, and shared for awareness. This confirms
+use at Bard; it does not establish freezer coverage or an integration offer.
+
+In the October 15 discussion, the maintainer explored BardBox supplying
+potentially lower-cost temperature sensors and their readings to B&G while
+B&G keeps WebCTRL as its dashboard. Conceptually, a BardBox instance could
+expose a data interface that WebCTRL consumes directly or through an adapter.
+The comparison with CESH supplying data to JustAir is architectural only;
+it does not establish matching protocols or existing WebCTRL compatibility.
+
+This is a possibility, not an implemented API, selected architecture or
+commitment from B&G or its vendor. Bard’s installed WebCTRL version and
+supported interfaces, authentication, data mapping, operational ownership,
+reliability requirements, integration costs and overall savings are not yet
+established. No procurement, sensor deployment or integration is authorized.
+Project/platform-specific implementation decisions belong in their owning
+repositories if this exploration proceeds; this section records shared IT
+context only.
 
 ## Continuation and consolidation
 
