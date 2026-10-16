@@ -111,6 +111,23 @@ documentation and the current Codex app. Recheck it when either tool changes.
     unfinished work. A loose end is any work or state a task leaves behind:
     a kept checkout, uncommitted or unpushed work, an open branch or PR, or
     a pending decision.
+    - **Tidy as you go.** Complete task cleanup in the same delivery cycle,
+      before handing back or starting another feature. Finish review and obtain
+      any required merge authorization; do not leave completed work in open PRs
+      merely because integration is a separate step. After verifying the merge
+      on GitHub, reconcile issues and board status, return the canonical checkout
+      to synchronized, clean `main` when no other writer owns it, and remove the
+      task's confirmed merged local and remote branches unless a concrete recovery
+      need requires retention. Routine cleanup is part of the task, not another
+      permission round; merge authorization remains separate. Preserve unfinished
+      work and unique artifacts. If cleanup is blocked by ownership, missing
+      authorization or unresolved work, record the exact blocker, owner and next
+      action instead of silently leaving clutter or discarding work.
+      Before requesting or creating an exceptional new worktree under rule 3,
+      inventory existing worktrees and finish authorized cleanup first. Reuse the
+      canonical checkout; an old worktree is not a reason to create another.
+      Preserve and explicitly dispose of any worktree that cannot yet be retired;
+      do not bypass unfinished work or another writer's ownership.
     - **Dispositions:** every loose end needs a disposition: retained,
       expected or in progress, with an owner, a reason and the date of the
       next decision. Documented expected state, such as a repository's
