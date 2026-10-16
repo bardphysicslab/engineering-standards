@@ -109,6 +109,20 @@ the recovery checkpoint, not to continue generating ever-larger changes.
   material limitations or remaining risks. Mention what did not change only
   when it clarifies scope.
 
+## Local layout previews
+
+For visual and layout reviews, provide a password-free preview by default. Do not
+make the maintainer retrieve a temporary username, token or password merely to
+inspect a layout. Open or link the preview directly and verify that it renders.
+
+Keep these previews local to the workstation (loopback only), use synthetic or
+public fixture data, and disable hardware operations and consequential writes.
+Do not include live secrets or private production data. Preserve authentication
+and other access controls on live applications and on environments that need
+them; provide a separate isolated layout preview instead of weakening those
+controls. Record how to stop the preview and clean up temporary resources when
+the review is finished.
+
 ## Architectural self-check
 
 Scale the check to the change: a sentence or two for a small, local fix; the
