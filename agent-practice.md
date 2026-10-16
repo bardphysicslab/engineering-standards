@@ -92,6 +92,16 @@ the recovery checkpoint, not to continue generating ever-larger changes.
   user guidance, architecture/data flow, setup/maintenance instructions,
   derived-metric definitions, decision records, and platform standards.
   These are required topics, not a mandate for a separate file for each topic.
+- When a task creates a module or materially changes a module interface,
+  present a concise, plain-language overview of every new or changed contract
+  directly in the active chat when handing the task back. Include its purpose
+  and owner, inputs and outputs, state and persistence, side effects and
+  permissions, failure/retry/recovery behavior, consumers and compatibility,
+  and any provisional or unresolved decisions. Scale the detail to the change.
+  Show the overview where the maintainer can review it at that point; links to
+  maintained interface documentation supplement, rather than replace, it.
+  Establish useful modular boundaries early and evolve the smallest adequate
+  current contract; do not delay a bounded milestone to perfect future contracts.
 - Explain derived values plainly to users. Document mathematical methods and
   thresholds where relevant: formula, implementation, and tests must agree.
   Record meaningful decisions with their reason, alternatives, and consequences.
