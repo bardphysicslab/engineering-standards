@@ -123,6 +123,11 @@ documentation and the current Codex app. Recheck it when either tool changes.
       work and unique artifacts. If cleanup is blocked by ownership, missing
       authorization or unresolved work, record the exact blocker, owner and next
       action instead of silently leaving clutter or discarding work.
+      Before requesting or creating an exceptional new worktree under rule 3,
+      inventory existing worktrees and finish authorized cleanup first. Reuse the
+      canonical checkout; an old worktree is not a reason to create another.
+      Preserve and explicitly dispose of any worktree that cannot yet be retired;
+      do not bypass unfinished work or another writer's ownership.
     - **Dispositions:** every loose end needs a disposition: retained,
       expected or in progress, with an owner, a reason and the date of the
       next decision. Documented expected state, such as a repository's
