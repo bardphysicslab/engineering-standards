@@ -5,6 +5,140 @@ This document governs how development work is formulated and delegated.
 Its purpose is speed with control: make agent tasks clear, bounded,
 verifiable, and consistent with the project's established architecture.
 
+## Idea to accepted work
+
+This section connects conversation, architectural decisions and tracked delivery.
+Apply it proportionally: a routine fix within an accepted design needs a clear
+issue and acceptance evidence, not a separate architectural ceremony.
+
+### Information ownership
+
+| Location | Owns |
+| --- | --- |
+| Project instructions | Standing project expectations and links to authoritative guidance |
+| Shared engineering rules | Cross-project planning, implementation, review and delivery process |
+| Repository `AGENTS.md` | Local entry point, repository facts and required reading |
+| `ARCHITECTURE.md` and diagrams | Accepted structure, boundaries and state owners; clearly labelled proposals |
+| Technical contracts | Interfaces, compatibility, failure behavior and consumer obligations |
+| GitHub issue | Problem, material discussion, decision, authorization references and acceptance evidence |
+| GitHub project board | Priority, owner and workflow position of that same issue |
+| `docs/DECISIONS.md` | Concise decision index linking to authoritative issue records |
+| Continuation record | Verified stopping point, preservation status, blockers and next owner/action |
+
+Keep one maintained copy. Project instructions and `AGENTS.md` link to shared
+rules rather than duplicating them. BardBox owns platform contracts; each
+application repository owns its implementation and application architecture.
+A journal or chat is exploratory input, not a replacement for the issue record.
+
+```mermaid
+flowchart TB
+    Project["Project instructions: expectations and ownership"]
+    Rules["Engineering rules: working process"]
+    Agents["AGENTS.md: local entry point"]
+    Architecture["ARCHITECTURE.md and diagrams: structure and boundaries"]
+    Contracts["Technical contracts: interface promises"]
+    Issue["GitHub issue: discussion, decision and acceptance"]
+    Board["Project board: priority, owner and status"]
+    Index["Decision index: summaries and links"]
+    PR["Pull request: implementation and review evidence"]
+    Project --> Rules
+    Project --> Agents
+    Agents --> Rules
+    Agents --> Architecture
+    Architecture --> Contracts
+    Rules --> Issue
+    Architecture --> Issue
+    Contracts --> Issue
+    Board --> Issue
+    Index --> Issue
+    Issue --> PR
+    PR -->|Evidence and results| Issue
+    Issue -->|Accepted design changes| Architecture
+    Issue -->|Accepted interface changes| Contracts
+```
+
+### From conversation to implementation
+
+1. **Capture useful work.** Ideas can remain exploratory. When an idea becomes
+   actionable work or a material design decision, first find an existing owning
+   issue and project board. Reuse them; create an issue if needed. A project
+   card references that issue rather than becoming a second discussion record.
+2. **Establish the baseline.** Read the current checkpoint, applicable rules,
+   architecture, contracts, implementation, prior decisions and evidence. State
+   what exists, what is proposed and what remains unknown.
+3. **Discuss a bounded proposal.** Present the intended result, exclusions,
+   affected owners/interfaces, credible alternatives, consequences and observable
+   acceptance criteria. Include the module contract overview required by
+   `agent-practice.md` directly in the conversation. Resolve material open
+   choices with the maintainer before dependent implementation.
+4. **Preserve the accepted decision.** Record the material discussion and accepted
+   conclusion in the owning issue before delegation. Link the maintainer's
+   authorization or accurately summarize its scope; do not invent approval.
+   Update affected architecture, contracts and Mermaid diagrams with clear
+   proposal/current labels. Unmerged changes remain proposals.
+5. **Make the issue ready.** Scope, acceptance, dependencies, implementation owner,
+   review owner and authorized actions must be clear. Delegate one bounded
+   milestone using the issue and governing revisions. Do not make agents depend
+   on reconstructing chat history.
+6. **Implement, review and deliver.** Follow the delivery sequence below. Fix
+   implementation defects on the same branch; reopen the design discussion if
+   the accepted design must change. Reconcile affected documentation and diagrams
+   with the actual implementation before claiming completion.
+
+A significant architectural decision uses a lightweight record in the issue:
+**Context; Decision; Alternatives and rejection reasons; Consequences; Acceptance.**
+Record its status (proposed, accepted or superseded) and acceptance reference.
+Keep a repository `docs/DECISIONS.md` index for significant decisions, linked from
+its architecture or README: a stable decision identifier, short summary, status
+and issue link are enough. Do not copy the full record into that index. Preserve
+superseded reasoning and link to its replacement. Shared decisions belong in
+BardBox or engineering-standards according to ownership; application indexes
+link to them rather than maintaining duplicate decisions. Introduce this
+convention with relevant new work; do not fabricate a historical backfill.
+
+```mermaid
+flowchart TB
+    Idea["Idea or problem in conversation"] --> Capture{"Actionable work or material decision?"}
+    Capture -->|No| Notes["Exploratory notes"]
+    Capture -->|Yes| Issue["Find or create owning issue on existing board"]
+    Issue --> Baseline["Check architecture, contracts, code and prior decisions"]
+    Baseline --> Discuss["Discuss scope, options, contracts and acceptance"]
+    Discuss --> Agreed{"Material choices resolved with maintainer?"}
+    Agreed -->|No| Discuss
+    Agreed -->|Yes or routine work within accepted design| Record["Record decision and update affected design artifacts"]
+    Record --> Ready["Ready: bounded milestone and authorized actions"]
+    Ready --> Implement["Implement"]
+    Implement --> Review["Independent review and focused verification"]
+    Review --> Accepted{"Acceptance satisfied?"}
+    Accepted -->|Implementation defect| Implement
+    Accepted -->|Design change needed| Discuss
+    Accepted -->|Yes| Deliver["Merge and release as authorized"]
+    Deliver --> Close["Record delivery evidence and continuation; close scoped work"]
+```
+
+### Status, authorization and closeout
+
+Use the existing board's workflow; the common sequence is Backlog, Ready,
+In progress, Review and Done, with Blocked for a concrete dependency or decision.
+The board owns queue position; the issue owns scope and evidence.
+
+Keep delivery facts explicit and separate from queue status: implemented,
+tested, reviewed, merged, deployed and physically verified are different claims.
+Record the exact revision, evidence and remaining work. If the agreed goal is a
+live service, completion of a code issue alone does not complete that goal;
+track the remaining release work with an owner and next step.
+
+Design acceptance, implementation authorization, merge authorization and
+operational authorization are distinct. The maintainer may authorize several
+steps in advance. Reuse that authorization within its scope instead of asking
+again; review success alone grants no additional authorization.
+
+At handoff or completion, update the authoritative issue and continuation
+record with branch/commit, issue/PR links, evidence, delivery stage, preservation
+status, blockers and exact next owner/action. Check affected instruction entry
+points, templates and coordination skills for drift; record necessary follow-up
+without copying this workflow into each consumer.
+
 ## 1. Prompt Preflight
 
 Before giving a coding task to an agent, check the request.

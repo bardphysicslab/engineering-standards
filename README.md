@@ -7,6 +7,15 @@ their root `AGENTS.md`; they do not copy it.
 This repository is public. Do not add private hostnames, paths, account names,
 credentials or personal contact details here.
 
+## Start here: idea to completion
+
+The [development workflow](development-workflow.md#idea-to-accepted-work)
+connects ideas, architecture decisions, GitHub issues and project-board status
+to implementation, independent review and delivery. It includes diagrams of
+[document ownership](development-workflow.md#information-ownership) and the
+[conversation-to-completion process](development-workflow.md#from-conversation-to-implementation).
+Keep these diagrams with the workflow; this opening page links to that maintained copy.
+
 ## Human overview
 
 A short map for people. It describes where guidance lives and the order to
