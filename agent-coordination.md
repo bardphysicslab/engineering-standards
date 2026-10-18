@@ -43,13 +43,14 @@ local tooling must follow this shared boundary; their defaults do not grant it.
 
 Work is reviewed by someone other than its author before it merges. A review
 records its governing commit and its findings, and does not by itself
-authorize a merge. Merge, deployment, discarding unique work and exceptional checkout retirement
-require authorization covering the action. Routine deletion of confirmed merged
+authorize a merge. Merge, deployment, discarding unique work and exceptional
+checkout retirement require authorization covering the action. Routine deletion of confirmed merged
 task branches and returning an unowned clean canonical checkout to synchronized
 `main` are task closeout under `checkouts-and-worktrees.md`, rule 10; do not ask a
 second time for that routine cleanup. Protect other writers and recovery needs.
 Record any maintainer-authorized review exception against the specific revision
-and risk; do not turn a single waiver into a standing exemption. Sources: `agent-practice.md`,
+and risk; do not turn a single waiver into a standing exemption.
+Sources: `agent-practice.md`,
 "Verification and documentation"; `checkouts-and-worktrees.md`, rules 9
 and 10.
 

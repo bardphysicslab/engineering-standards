@@ -331,7 +331,10 @@ Work is delivered one feature at a time, in the repository's one canonical
 checkout (`checkouts-and-worktrees.md`, rules 1 to 4).
 
 - **`main` is the baseline.** It holds the last tested and independently
-  reviewed working version. Nobody pushes unreviewed work to `main`.
+  reviewed working version. Any maintainer-authorized review exception is named
+  against the exact revision under `agent-coordination.md`; it is never implied
+  by permission to implement or merge. Nobody pushes unreviewed work to `main`
+  outside such an explicit exception.
 - **One active feature branch.** Start it from the current `main`. The
   implementing agent implements and tests on it, then hands off a clean,
   known commit with its evidence. The reviewing agent reviews that exact
