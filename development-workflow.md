@@ -11,6 +11,17 @@ This section connects conversation, architectural decisions and tracked delivery
 Apply it proportionally: a routine fix within an accepted design needs a clear
 issue and acceptance evidence, not a separate architectural ceremony.
 
+### Keep the workflow proportional
+
+Use one short issue summary and a focused PR for a routine fix within an accepted
+design. Briefly state the result, boundary impact and relevant evidence; use
+“not applicable” with a reason when needed. Do not require a new ADR, extra meeting,
+exhaustive test rounds or every possible artifact for a small change. Existing
+accepted decisions and valid unchanged evidence are reused. A material change to
+responsibility, authoritative state, interfaces, compatibility or operational risk
+uses the fuller design path below. If classification is uncertain, explain the
+concrete impact rather than expanding the process by default.
+
 ### Information ownership
 
 | Location | Owns |
@@ -41,18 +52,21 @@ flowchart TB
     Board["Project board: priority, owner and status"]
     Index["Decision index: summaries and links"]
     PR["Pull request: implementation and review evidence"]
-    Project --> Rules
-    Project --> Agents
-    Agents --> Rules
-    Agents --> Architecture
-    Architecture --> Contracts
-    Rules --> Issue
-    Architecture --> Issue
-    Contracts --> Issue
-    Board --> Issue
-    Index --> Issue
-    Issue --> PR
+    Continuation["Continuation: verified state and next owner/action"]
+    Project -->|Requires applicable guidance| Rules
+    Project -->|Directs repository work| Agents
+    Agents -->|Loads pinned guidance| Rules
+    Agents -->|Requires applicable design| Architecture
+    Architecture -->|Links interface detail| Contracts
+    Rules -->|Governs process| Issue
+    Architecture -->|Constrains proposal| Issue
+    Contracts -->|Constrain proposal| Issue
+    Board -->|Tracks queue position| Issue
+    Index -->|Links accepted reasoning| Issue
+    Issue -->|Defines approved scope| PR
     PR -->|Evidence and results| Issue
+    PR -->|Verified handoff| Continuation
+    Continuation -->|Resumes tracked work| Issue
     Issue -->|Accepted design changes| Architecture
     Issue -->|Accepted interface changes| Contracts
 ```
@@ -70,7 +84,11 @@ flowchart TB
    affected owners/interfaces, credible alternatives, consequences and observable
    acceptance criteria. Include the module contract overview required by
    `agent-practice.md` directly in the conversation. Resolve material open
-   choices with the maintainer before dependent implementation.
+   choices with the maintainer before dependent implementation. For material work,
+   name the affected architecture/contract sections, component and state owners,
+   preserved invariants and normal/failure paths. Explain how the proposed change
+   respects each affected boundary or identify the departure needing a decision.
+   “Architecture checked” without this explanation is not evidence.
 4. **Preserve the accepted decision.** Record the material discussion and accepted
    conclusion in the owning issue before delegation. Link the maintainer's
    authorization or accurately summarize its scope; do not invent approval.
@@ -83,11 +101,26 @@ flowchart TB
 6. **Implement, review and deliver.** Follow the delivery sequence below. Fix
    implementation defects on the same branch; reopen the design discussion if
    the accepted design must change. Reconcile affected documentation and diagrams
-   with the actual implementation before claiming completion.
+   with the actual implementation before claiming completion. In the PR, map each
+   acceptance criterion to its satisfying change and evidence at the reviewed
+   revision. Evidence may be a focused automated test, inspection, rendered page,
+   simulated dependency, hardware observation or deployment check; label its level
+   and limits. This mapping does not require extra tests for unchanged behavior.
+   The reviewer checks both acceptance and architectural claims against the diff.
 
 A significant architectural decision uses a lightweight record in the issue:
 **Context; Decision; Alternatives and rejection reasons; Consequences; Acceptance.**
 Record its status (proposed, accepted or superseded) and acceptance reference.
+Give accepted decisions a stable identifier and a dated, direct issue-comment
+anchor stating the exact choice, rationale, approver/authorization reference and
+scope. A comment is still editable: treat accepted decision entries as append-only
+by convention, not as a technical immutability guarantee. Correct or supersede one
+through a new linked entry; do not silently change what an old approval means.
+Issue summaries can be refreshed but must link the specific decision entry and
+separate design status from implementation/adoption status. Record assumptions and
+conditions for reconsideration when they materially affect the choice. If the
+reasoning or approval cannot be verified, mark the gap rather than reconstructing
+approval. Link a genuinely new proposal until its own review and acceptance.
 Keep a repository `docs/DECISIONS.md` index for significant decisions, linked from
 its architecture or README: a stable decision identifier, short summary, status
 and issue link are enough. Do not copy the full record into that index. Preserve
@@ -112,8 +145,15 @@ flowchart TB
     Review --> Accepted{"Acceptance satisfied?"}
     Accepted -->|Implementation defect| Implement
     Accepted -->|Design change needed| Discuss
-    Accepted -->|Yes| Deliver["Merge and release as authorized"]
-    Deliver --> Close["Record delivery evidence and continuation; close scoped work"]
+    Accepted -->|Yes| Merge["Merge reviewed revision when authorized"]
+    Merge --> Release{"Deployment or adoption in agreed scope?"}
+    Release -->|No| Close["Record evidence, reconcile docs and hand off or close scoped work"]
+    Release -->|Yes| Deploy["Deploy or migrate when authorized"]
+    Deploy --> Verify["Verify actual outcome and recovery readiness"]
+    Verify --> Outcome{"Release acceptance met?"}
+    Outcome -->|Yes| Close
+    Outcome -->|No| Recover["Recover safely; record gap, owner and next action"]
+    Recover --> Issue
 ```
 
 ### Status, authorization and closeout
@@ -138,6 +178,35 @@ record with branch/commit, issue/PR links, evidence, delivery stage, preservatio
 status, blockers and exact next owner/action. Check affected instruction entry
 points, templates and coordination skills for drift; record necessary follow-up
 without copying this workflow into each consumer.
+
+### Handover and lightweight scaffolding
+
+For a new or materially changed module, provide or update a concise guide in the
+owning repository: purpose and boundaries, public contract, reasons/decision links,
+a minimal use example, run/test instructions, expected failure behavior and known
+limits. Shared BardBox design/contracts stay in BardBox; the reference template
+links them and owns only implementation-specific usage and evidence.
+
+A fresh maintainer or reviewer should be able to follow requirement → dated
+accepted decision → architecture/contract → implementation PR → verification →
+release/adoption evidence without the original conversation. Use this cold-handover
+check at meaningful module/release milestones, not on every minor fix. Report
+missing links honestly; a fresh reader need not operate live systems to check them.
+
+Name the continuing maintainer role and backup owner where applicable. Before
+operational handover, verify authorized successors can access repositories, release
+artifacts and recovery/runbook locations. Record evidence and remaining gaps in
+protected operational records; never publish credentials or private access details.
+An access checklist grants no access and authorizes no credential or permission
+changes. An unassigned owner is an explicit gap, not an assumed succession plan.
+
+Use short GitHub issue and PR templates as prompts for this process. Engineering
+standards maintains reusable forms; the project template ships the same supported
+forms for newly created repositories, with provenance links. These operational
+copies are not independent sources of policy: changes to shared prompts update the
+maintained source and known packaged copy in the same change or name the drift.
+Existing repositories adopt them deliberately. A shape/link/diagram check can
+catch omissions, not prove architectural correctness or truthful approval.
 
 ## 1. Prompt Preflight
 
@@ -262,7 +331,10 @@ Work is delivered one feature at a time, in the repository's one canonical
 checkout (`checkouts-and-worktrees.md`, rules 1 to 4).
 
 - **`main` is the baseline.** It holds the last tested and independently
-  reviewed working version. Nobody pushes unreviewed work to `main`.
+  reviewed working version. Any maintainer-authorized review exception is named
+  against the exact revision under `agent-coordination.md`; it is never implied
+  by permission to implement or merge. Nobody pushes unreviewed work to `main`
+  outside such an explicit exception.
 - **One active feature branch.** Start it from the current `main`. The
   implementing agent implements and tests on it, then hands off a clean,
   known commit with its evidence. The reviewing agent reviews that exact

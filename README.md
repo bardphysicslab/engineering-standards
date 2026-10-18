@@ -16,6 +16,12 @@ to implementation, independent review and delivery. It includes diagrams of
 [conversation-to-completion process](development-workflow.md#from-conversation-to-implementation).
 Keep these diagrams with the workflow; this opening page links to that maintained copy.
 
+## Decision history
+
+See the [decision index](docs/DECISIONS.md) for accepted choices and their
+authoritative reasoning. The [workflow hardening record](docs/workflow-continuation.md)
+tracks adoption and review gaps.
+
 ## Human overview
 
 A short map for people. It describes where guidance lives and the order to

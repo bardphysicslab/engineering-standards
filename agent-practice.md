@@ -7,6 +7,10 @@ from the BardBox root `AGENTS.md`. "Change discipline" and the
 focused-test and completion-report rules were promoted from Beaker. See
 `README.md` in this directory for when to read it.
 
+The [development workflow](development-workflow.md#idea-to-accepted-work) owns
+the idea-to-decision process, architecture evidence, acceptance mapping and
+handover requirements. Use its proportional path; do not maintain a second checklist.
+
 ## Decisions and proportional workflow
 
 Use **Define done → Design → Decompose → Implement → Verify →

@@ -22,20 +22,35 @@ rule wins (`README.md`, "Precedence", rule 2).
 
 ## Manual relay between agents
 
-Agents do not message, start, wake or drive one another, operate each
-other's desktop applications, or approve one another's permissions. Prompts
+By default, agents do not message, start, wake or drive one another, operate
+each other's desktop applications, or approve one another's permissions. Prompts
 and reports pass through the maintainer: the reviewing agent prepares a
 prompt, the maintainer sends it to the implementing agent, and the
 maintainer returns the report for review. Sources: the maintainer's standing
 instruction for Codex and Claude coordination (2026-10-03); the daily
 housekeeping handoff in `bardphysicslab/bardbox-tools`, `docs/housekeeping.md`.
 
+The maintainer may explicitly authorize direct coordination for a named task or
+session. Record its scope, destination and end condition in the owning issue or
+handoff. Verify the destination and preserve drafts; do not create duplicate
+workers. Sending a prompt is not proof work started or completion will be reported.
+State whether completion is checked manually or through a verified notification
+path. Direct coordination grants no implementation, merge, deployment, credential
+or permission authority beyond the maintainer's actual authorization. Skills and
+local tooling must follow this shared boundary; their defaults do not grant it.
+
 ## Independent review and merging
 
 Work is reviewed by someone other than its author before it merges. A review
 records its governing commit and its findings, and does not by itself
-authorize a merge. Merges, branch deletion, ending checkouts and deployment
-each need their own explicit authorization. Sources: `agent-practice.md`,
+authorize a merge. Merge, deployment, discarding unique work and exceptional
+checkout retirement require authorization covering the action. Routine deletion of confirmed merged
+task branches and returning an unowned clean canonical checkout to synchronized
+`main` are task closeout under `checkouts-and-worktrees.md`, rule 10; do not ask a
+second time for that routine cleanup. Protect other writers and recovery needs.
+Record any maintainer-authorized review exception against the specific revision
+and risk; do not turn a single waiver into a standing exemption.
+Sources: `agent-practice.md`,
 "Verification and documentation"; `checkouts-and-worktrees.md`, rules 9
 and 10.
 
