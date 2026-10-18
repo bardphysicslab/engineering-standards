@@ -1,7 +1,9 @@
 # Workflow hardening continuation
 
 Authoritative tracker: [workflow hardening](https://github.com/bardphysicslab/engineering-standards/issues/15),
-on the existing BardBox Template project board. GitHub owns status.
+on the existing BardBox Template project board. GitHub owns current status; the
+dated checkpoint below is historical, not a claim about the current review or
+merge stage. Read the latest linked issue checkpoint before resuming.
 
 ## October 18, 2026 — authored checkpoint
 
