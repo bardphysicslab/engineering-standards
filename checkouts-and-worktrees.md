@@ -101,7 +101,10 @@ documentation and the current Codex app. Recheck it when either tool changes.
      do not force it. Run `git worktree prune` for entries whose directory is
      already gone.
 9. **Separate decisions.** Ending a checkout, deleting a branch, and deploying
-   are different actions with different approvals. Delete a local or remote
+   are distinct actions; authorization must cover each consequential action.
+   Routine confirmed-merged task cleanup follows rule 10 without another permission
+   round. Retiring an exceptional checkout or discarding unique work still needs
+   applicable authorization. Delete a local or remote
    branch only after its merge is confirmed on GitHub, or after the
    maintainer approves discarding it. Historical branches and tags may
    remain as recovery references; they are not active tasks. Do not delete
@@ -180,7 +183,8 @@ documentation and the current Codex app. Recheck it when either tool changes.
 
     A disposition is not approval, and neither is committing or pushing a
     task branch. Disposal, merging, ending a checkout and deployment keep
-    their separate approvals (rule 9).
+    applicable authorization boundaries (rule 9), including routine cleanup already
+    covered by the task.
 11. **Build artifacts and private recovery data.** Firmware binaries, their
     manifests and build inputs, and private recovery data such as device
     backups are kept in a durable store that does not depend on any checkout,
