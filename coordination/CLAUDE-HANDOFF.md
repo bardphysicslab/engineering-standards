@@ -7,7 +7,7 @@
   1. Shared correction on PR [#20](https://github.com/bardphysicslab/engineering-standards/pull/20),
      branch `codex/workflow-gate-prototype`. The exact head is recorded in the PR.
   2. Reference adoption drafts on BardBox-Reference branch `codex/first-freezer-reference`
-     at `ca98b47d601c626adc1389c6ce48f9fb041ef6a3` (descends from `2feff97`, the
+     at `a64d5dc8de7eb102862542e484d5c1b56c109b1e` (descends from `2feff97`, the
      head of closed PR #2, which is unchanged and not reopened), owned by [Reference#1](https://github.com/bardphysicslab/BardBox-Reference/issues/1).
 - **Shared guidance:** bardphysicslab/engineering-standards@aa8454649fc2e8bb5ad50a5829f8d0cbda736442
 - **BardBox standards:** bardphysicslab/bardbox@34b8ae6e7a9ee3340093b6091df7acfd97578b83
@@ -34,8 +34,11 @@ App restart after removal and runtime unloading remain unconfirmed for both runt
     - a read-only Registry slice (definitions, validation, lookup); Controls,
       edits, permission, timing and saved state deferred, and deferring
       measurement-contract resolution needs explicit acceptance;
-    - a baseline on `main` `b2f1ea0` that keeps the old attempt preserved and
-      the inherited template excluded;
+    - a baseline on `main` `b2f1ea0` that keeps the superseded implementation
+      preserved and the inherited template excluded, with a minimal
+      documentation reconciliation (README, decision index, restart-status
+      ARCHITECTURE, current adoption handoff and evidence, task-tracking
+      pointer) listed for separate approval;
     - route A for tests and Git.
 - `coordination/CLAUDE-HANDOFF.md` now opens with the current milestone; the
   superseded attempt's handoff is kept below it. README links the adoption document.
@@ -96,5 +99,5 @@ question 2. Registry stays paused.
 ## Next action
 
 Kornelis brings this handoff to Codex for review of the exact PR #20 head and
-Reference `ca98b47`; Kornelis then accepts, changes or rejects the
+Reference `a64d5dc`; Kornelis then accepts, changes or rejects the
 recommended decisions on Reference#1.
