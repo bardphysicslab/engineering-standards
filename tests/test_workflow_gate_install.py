@@ -170,7 +170,9 @@ class LiveFixtureTests(EntryCase):
         self.assertEqual(made.returncode, 0, made.stderr)
         repo = Path(json.loads(made.stdout)["enroll"])
         self.root = repo
-        self.policy({"schema": "workflow-gate-policy/1", "enrolled": [str(repo)], "roles": {"claude-code": "writer", "codex": "reviewer"}})
+        self.assertEqual(json.loads((folder / "policy.json").read_text())["enrolled"], [str(repo)])
+        shutil.copyfile(folder / "policy.json", self.install / "policy.json")  # the runbook's copy step, minus sudo
+        os.chmod(self.install / "policy.json", 0o644)
         expected = {"valid.json": None, "self-approved.json": "approver is the writer", "expired.json": "stale approval",
                     "conflicting.json": "questions for Codex and Kornelis", "malformed.json": "malformed write evidence"}
         for draft, reason in expected.items():
@@ -179,6 +181,48 @@ class LiveFixtureTests(EntryCase):
                 os.chmod(self.store, 0o644)
                 result = self.entry("claude-code", self.payload("claude-code/write.json"))
                 self.assertAllowed(result) if reason is None else self.assertDenied(result, reason)
+
+
+class VerifyInstallTests(EntryCase):
+    def verify(self, *args):
+        return subprocess.run([sys.executable, "-I", str(INSTALL / "verify_install.py"), *args], capture_output=True, text=True)
+
+    def test_policy_check_accepts_fixture_policy_and_rejects_placeholders(self):
+        folder = self.tmp / "live"
+        subprocess.run([sys.executable, str(INSTALL / "live_fixture.py"), str(folder)], check=True, capture_output=True, env=demo.GIT_ENV)
+        good = self.verify("policy", str(folder / "policy.json"))
+        self.assertEqual(good.returncode, 0, good.stderr)
+        self.assertIn(str(folder.resolve() / "repo"), good.stdout)
+        cases = {"ENROLL": "malformed", "/absolute/path/to/disposable/fixture/repo": "not a Git top level", str(self.tmp / "repo" / "src"): "not a Git top level"}
+        for enrolled, reason in cases.items():
+            with self.subTest(enrolled):
+                demo.write_json(self.tmp / "bad.json", {"schema": "workflow-gate-policy/1", "enrolled": [enrolled], "roles": {"claude-code": "writer", "codex": "reviewer"}})
+                result = self.verify("policy", str(self.tmp / "bad.json"))
+                self.assertEqual(result.returncode, 1)
+                self.assertIn(reason, result.stderr)
+        demo.write_json(self.tmp / "roles.json", {"schema": "workflow-gate-policy/1", "enrolled": [str(self.root)], "roles": {"claude-code": "writer", "codex": "writer"}})
+        self.assertIn("roles must be", self.verify("policy", str(self.tmp / "roles.json")).stderr)
+
+    def test_installed_check_requires_identical_protected_copies(self):
+        args = ["installed", "--install-dir", str(self.install), "--test-owner-uid", str(os.getuid())]
+        ok = self.verify(*args)
+        self.assertEqual(ok.returncode, 0, ok.stderr)
+        self.assertIn("not owned by the protected owner", self.verify("installed", "--install-dir", str(self.install)).stderr)
+        with open(self.install / "gate.py", "a") as handle:
+            handle.write("\n# changed\n")
+        self.assertIn("gate.py differs", self.verify(*args).stderr)
+
+
+class RunbookTests(unittest.TestCase):
+    def test_runbook_is_new_install_only_with_guarded_rollback(self):
+        text = (INSTALL / "README.md").read_text()
+        self.assertNotIn("merge the one hook", text)
+        self.assertNotIn("ENROLL#", text)
+        self.assertIn("verify_install.py installed", text)
+        removals = [line for line in text.splitlines() if "sudo rm " in line and ("managed-settings.json" in line or "requirements.toml" in line)]
+        self.assertTrue(removals)
+        for line in removals:
+            self.assertTrue(line.lstrip().startswith("cmp -s "), line)
 
 
 class ConfigProposalTests(unittest.TestCase):

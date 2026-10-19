@@ -70,8 +70,8 @@ def trusted_files(install_dir):
     return files + ([evidence] if os.path.lexists(evidence) else [])
 
 
-def load_policy(install_dir):
-    with open(install_dir / "policy.json") as handle:
+def load_policy(policy_file):
+    with open(policy_file) as handle:
         policy = json.load(handle)
     enrolled = policy.get("enrolled") if isinstance(policy, dict) else None
     roles = policy.get("roles") if isinstance(policy, dict) else None
@@ -109,7 +109,7 @@ def main(argv=None, owner_uid=PROTECTED_UID, install_dir=None):
         module_name, runtime = RUNTIMES[argv[0]]
         for path in trusted_files(install_dir):
             verify_protected(path, owner_uid)
-        roots, roles = load_policy(install_dir)
+        roots, roles = load_policy(install_dir / "policy.json")
         role = roles.get(argv[0])
         home = os.environ.get("HOME", "/")
         os.environ.clear()

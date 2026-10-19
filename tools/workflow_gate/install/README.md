@@ -14,51 +14,57 @@ runs them in a terminal.
 | `claude-managed-settings.fragment.json` | Proposed Claude Code managed settings: one PreToolUse hook, nothing else |
 | `codex-requirements.toml` | Proposed Codex managed requirements: one PreToolUse hook |
 | `policy.example.json` | Policy shape: enrolled checkouts and per-runtime role |
-| `live_fixture.py` | Creates a disposable checkout and evidence drafts for live tests |
+| `live_fixture.py` | Creates a disposable checkout, its `policy.json` and evidence drafts for live tests |
+| `verify_install.py` | Read-only checks of the policy and of the installed copies before any hook is registered |
 
 Tests: `python3 -m unittest discover -s tests -p 'test_workflow_gate*.py'`.
 
 ## Supported installation path
 
 This Mac has no MDM enrollment and no existing managed Claude Code or Codex
-policy. The vendor-supported route without MDM is the system file for each
-runtime, written by an administrator:
+policy (read-only probe, 2026-10-19). The vendor-supported route without MDM is
+a system file for each runtime, written by an administrator:
 
 - Claude Code reads `/Library/Application Support/ClaudeCode/managed-settings.json`
-  at startup and reloads it when it changes, so running sessions are affected.
-  `/status` should list `Enterprise managed settings (file)`.
-- Codex reads `/etc/codex/requirements.toml` at startup. Managed hooks are trusted
-  by policy, so no per-hook trust review is needed; restart the ChatGPT app.
+  at startup and reloads it when it changes, so the running Desktop-embedded
+  session is affected without a restart.
+- Codex reads `/etc/codex/requirements.toml` at startup, so the ChatGPT app must
+  be restarted. Managed hooks are trusted by policy; there is no per-hook trust review.
 
 An installer script was refused as self-modification, so these are manual steps.
+**This runbook is for a new installation only.** If any destination already
+exists, stop: merging into an existing policy is not covered, and rollback
+here would not preserve other settings.
 
 ## Install (Kornelis, after review of commit `C`)
 
-Run from the canonical engineering-standards checkout, clean at `C`. Stop if any
-check differs.
+Run each command from the canonical engineering-standards checkout, clean at
+`C`. Stop at the first check that differs.
 
 ```bash
 git status --porcelain && git rev-parse HEAD
 ```
 
-The first command must print nothing; the second must print `C`.
+Prints nothing, then `C`.
 
 ```bash
 ls -ld "/Library/Application Support/ClaudeCode" /etc/codex /Library/BardWorkflowGate
 ```
 
-All three must be absent. If either policy file exists, merge the one hook
-group by hand instead.
+All three report "No such file or directory". Otherwise stop.
 
 ```bash
-python3 tools/workflow_gate/install/live_fixture.py /tmp/wgp-live
+/usr/bin/python3 tools/workflow_gate/install/live_fixture.py /tmp/wgp-live
 ```
 
-The output's `enroll` path is `ENROLL`.
+Creates the disposable checkout `/private/tmp/wgp-live/repo`, its policy
+`/tmp/wgp-live/policy.json` and the drafts. Check the policy before copying it:
 
 ```bash
-sed "s#/absolute/path/to/disposable/fixture/repo#ENROLL#" tools/workflow_gate/install/policy.example.json > /tmp/wgp-policy.json
+/usr/bin/python3 -I tools/workflow_gate/install/verify_install.py policy /tmp/wgp-live/policy.json
 ```
+
+Must print `policy OK; enrolls /private/tmp/wgp-live/repo`.
 
 ```bash
 sudo /usr/bin/install -d -o root -g wheel -m 0755 /Library/BardWorkflowGate /Library/BardWorkflowGate/adapters /Library/BardWorkflowGate/approvals
@@ -73,8 +79,17 @@ sudo /usr/bin/install -o root -g wheel -m 0644 tools/workflow_gate/adapters/clau
 ```
 
 ```bash
-sudo /usr/bin/install -o root -g wheel -m 0644 /tmp/wgp-policy.json /Library/BardWorkflowGate/policy.json
+sudo /usr/bin/install -o root -g wheel -m 0644 /tmp/wgp-live/policy.json /Library/BardWorkflowGate/policy.json
 ```
+
+Before registering any hook, check the installed copy:
+
+```bash
+/usr/bin/python3 -I tools/workflow_gate/install/verify_install.py installed
+```
+
+Must print `installed copy OK: matches this checkout, protected, enrolls /private/tmp/wgp-live/repo`.
+Otherwise stop and run the gate-file rollback below.
 
 ```bash
 sudo /usr/bin/install -d -o root -g wheel -m 0755 /etc/codex
@@ -84,7 +99,7 @@ sudo /usr/bin/install -d -o root -g wheel -m 0755 /etc/codex
 sudo /usr/bin/install -o root -g wheel -m 0644 tools/workflow_gate/install/codex-requirements.toml /etc/codex/requirements.toml
 ```
 
-Claude Code last, because running sessions pick it up at once:
+Claude Code last; the running Claude session picks it up when the file appears:
 
 ```bash
 sudo /usr/bin/install -d -o root -g wheel -m 0755 "/Library/Application Support/ClaudeCode"
@@ -98,43 +113,74 @@ sudo /usr/bin/install -o root -g wheel -m 0644 tools/workflow_gate/install/claud
 sudo -k
 ```
 
-Verify that the installed copies match the reviewed files and the policy names
-only `ENROLL`:
+## Live tests in the existing sessions
 
-```bash
-for f in gate.py adapters/claude_code.py adapters/codex.py; do cmp tools/workflow_gate/$f /Library/BardWorkflowGate/$f; done; cmp tools/workflow_gate/install/entry.py /Library/BardWorkflowGate/entry.py; cat /Library/BardWorkflowGate/policy.json
-```
+Use the existing Desktop-embedded Claude Code session (the coding session that
+receives this handoff) and the existing Codex chat. Do not start another Claude
+runtime, CLI session or worker. Record each outcome with the exact deny text,
+keeping private paths and session IDs in private notes; post a summary on #19.
+A deny reason that starts with `workflow gate prototype (Claude Code 2.1.284, installed entry)`
+or `(Codex 0.163.0-alpha.10.2, installed entry)` shows that the installed managed
+hook ran, because no other hooks are configured.
 
-## Live tests
+**Claude Code, before the Claude step above:** Claude reports its runtime from
+`CLAUDE_CODE_ENTRYPOINT` (expected `claude-desktop`) and the version in
+`CLAUDE_CODE_EXECPATH` (expected `2.1.284`).
 
-Start a new Claude Code session in `ENROLL` and check `/status`; restart the
-ChatGPT app and open `ENROLL` in Codex. Record each runtime version and setting
-source with the outcomes. Keep private paths and session IDs in private notes.
+**Claude Code, after it, from the session's own unenrolled folder:**
 
 | # | Action | Expected |
 | --- | --- | --- |
-| L1 | Claude edits `src/app.txt` | Denied: no write evidence |
-| L2 | Kornelis: `sudo /usr/bin/install -o root -g wheel -m 0644 /tmp/wgp-live/drafts/valid.json /Library/BardWorkflowGate/approvals/evidence.json && sudo -k`; Claude edits `src/app.txt`, then `docs/guide.md` | Allowed; then denied: outside the approved scope |
-| L3 | Claude writes `.claude/settings.json`; runs a Bash command; calls an MCP tool | Each denied |
-| L4 | Install `self-approved`, `expired`, `conflicting`, `malformed` drafts in turn; Claude edits `src/app.txt` | Each denied with its reason |
-| L5 | Codex `apply_patch` and a shell command in `ENROLL` | Denied: reviewer role; shell |
-| L6 | Claude session outside `ENROLL`: Bash command; Write to a file in `ENROLL` | Bash allowed (known gap); Write denied |
+| C1 | Write tool to `/private/tmp/wgp-live/repo/src/app.txt` | Denied by the installed entry: no write evidence |
+| C2 | Bash: `for f in policy.json gate.py entry.py adapters/codex.py approvals; do test -w /Library/BardWorkflowGate/$f && echo "WRITABLE $f" \|\| echo "not writable $f"; done` | Every line `not writable` |
+| C3 | Bash: `touch /Library/BardWorkflowGate/agent-probe /Library/BardWorkflowGate/approvals/agent-probe` | `Permission denied` twice; nothing created |
+| C4 | Write tool to new file `/Library/BardWorkflowGate/approvals/evidence.json` (store still empty) | Refused by the operating system (permission) |
+| C5 | Bash: `sudo -n true` | `a password is required` (no cached credential) |
 
-Codex cannot read through its shell in an enrolled checkout, so it reviews from
-GitHub or an unenrolled clone.
+C2–C5 run from an unenrolled folder, where the hook lets Bash and the Write call
+through, so the refusals come from the root-owned files themselves. They create
+or change nothing when the protection holds.
+
+**Claude Code, in the fixture:** Kornelis types `/cd /private/tmp/wgp-live/repo`
+in the same session (supported from Claude Code 2.1.246). If the Desktop app
+does not accept it, stop and record that as the blocker; do not open a new session.
+
+| # | Action | Expected |
+| --- | --- | --- |
+| C6 | Edit `src/app.txt` | Denied: no write evidence |
+| C7 | Kornelis: `sudo /usr/bin/install -o root -g wheel -m 0644 /tmp/wgp-live/drafts/valid.json /Library/BardWorkflowGate/approvals/evidence.json && sudo -k`; Claude edits `src/app.txt`, then `docs/guide.md` | Allowed; then denied: outside the approved scope |
+| C8 | Write `.claude/settings.json`; run any Bash command; call an MCP tool | Each denied |
+| C9 | Kornelis installs `self-approved`, `expired`, `conflicting`, `malformed` drafts in turn the same way; Claude edits `src/app.txt` | Each denied with its reason |
+| C10 | Kornelis types `/cd` back to the original folder | Bash allowed again (unenrolled pass-through, a known gap) |
+
+**Codex:** quit and reopen the ChatGPT app (requirements load at startup), then
+open the same Codex chat. Record the app version and the bundled
+`codex-cli --version`.
+
+| # | Action | Expected |
+| --- | --- | --- |
+| X1 | Codex applies a patch to the absolute path `/private/tmp/wgp-live/repo/src/app.txt` | Denied by the installed entry: reviewer role does not write |
+
+If X1 shows no installed-entry deny, record "Codex hook not observed active" as
+the blocker; do not start another Codex session. Codex reviews from GitHub; its
+shell in its own unenrolled workspace is not gated.
 
 ## Rollback (any time, in a terminal)
 
-These remove only what the steps above created; they assume the policy files
-were absent before. Claude Code first, which deactivates it in running sessions:
+New installation only. Each removal first checks the file is still exactly what
+was installed; if `cmp` reports a difference, nothing is removed. Stop and
+inspect by hand, because someone else changed it. `rmdir` only removes empty
+folders. Claude Code first, which deactivates it in running sessions:
 
 ```bash
-sudo rm "/Library/Application Support/ClaudeCode/managed-settings.json" && sudo rmdir "/Library/Application Support/ClaudeCode"
+cmp -s tools/workflow_gate/install/claude-managed-settings.fragment.json "/Library/Application Support/ClaudeCode/managed-settings.json" && sudo rm "/Library/Application Support/ClaudeCode/managed-settings.json" && sudo rmdir "/Library/Application Support/ClaudeCode"
 ```
 
 ```bash
-sudo rm /etc/codex/requirements.toml && sudo rmdir /etc/codex
+cmp -s tools/workflow_gate/install/codex-requirements.toml /etc/codex/requirements.toml && sudo rm /etc/codex/requirements.toml && sudo rmdir /etc/codex
 ```
+
+Gate files (they hold no one else's settings):
 
 ```bash
 sudo rm -f /Library/BardWorkflowGate/approvals/evidence.json && sudo rm /Library/BardWorkflowGate/entry.py /Library/BardWorkflowGate/gate.py /Library/BardWorkflowGate/policy.json /Library/BardWorkflowGate/adapters/claude_code.py /Library/BardWorkflowGate/adapters/codex.py && sudo rmdir /Library/BardWorkflowGate/adapters /Library/BardWorkflowGate/approvals /Library/BardWorkflowGate
@@ -144,9 +190,10 @@ sudo rm -f /Library/BardWorkflowGate/approvals/evidence.json && sudo rm /Library
 sudo -k
 ```
 
-Then restart the ChatGPT app. If an installed entry denies every Claude tool
-call (for example, a protection check fails), this rollback is the fix; it does
-not depend on Claude.
+Then restart the ChatGPT app and confirm the three `ls -ld` destinations are
+absent again. If an installed entry denies every Claude tool call (for example,
+a protection check fails), this rollback is the fix; it does not depend on Claude.
+The disposable `/tmp/wgp-live` folder can be removed afterwards.
 
 ## Known gaps (accepted for a practical guard)
 

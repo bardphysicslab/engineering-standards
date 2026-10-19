@@ -2,7 +2,8 @@
 
     python3 tools/workflow_gate/install/live_fixture.py NEW_DIR
 
-Creates NEW_DIR/repo (synthetic Git checkout, example.invalid remote) and
+Creates NEW_DIR/repo (synthetic Git checkout, example.invalid remote),
+NEW_DIR/policy.json enrolling exactly that checkout (by its real path), and
 NEW_DIR/drafts/*.json. The drafts are proposals: the approver reviews one and
 copies it into the protected store with `sudo install` (see README.md). A draft
 written here is not an approval until that protected copy is made.
@@ -45,6 +46,9 @@ def main(argv):
     for name, overrides in drafts.items():
         demo.write_json(folder / "drafts" / f"{name}.json", demo.make_evidence(root, baseline, **overrides))
     demo.write_json(folder / "drafts" / "malformed.json", "{not json")
+    policy = {"schema": "workflow-gate-policy/1", "enrolled": [str(root.resolve())],
+              "roles": {"claude-code": "writer", "codex": "reviewer"}}
+    demo.write_json(folder / "policy.json", json.dumps(policy, indent=2) + "\n")
     print(json.dumps({"enroll": str(root.resolve()), "baseline": baseline, "drafts": sorted(p.name for p in (folder / "drafts").iterdir()),
                       "valid_for_hours": VALID_HOURS}, indent=2))
     return 0
