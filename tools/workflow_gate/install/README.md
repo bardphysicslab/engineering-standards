@@ -25,9 +25,16 @@ This Mac has no MDM enrollment and no existing managed Claude Code or Codex
 policy (read-only probe, 2026-10-19). The vendor-supported route without MDM is
 a system file for each runtime, written by an administrator:
 
-- Claude Code reads `/Library/Application Support/ClaudeCode/managed-settings.json`
-  at startup and reloads it when it changes, so the running Desktop-embedded
-  session is affected without a restart.
+- Claude Code reads `/Library/Application Support/ClaudeCode/managed-settings.json`.
+  The vendor documentation says changed settings files reload in running
+  sessions, but also that a file created mid-session is loaded only if its
+  folder existed when the session started. On a new installation that folder
+  does not exist yet, so **fully quit and restart the Claude desktop app** and
+  resume the same conversation before testing. Observed on 2026-10-19
+  ([live results](https://github.com/bardphysicslab/engineering-standards/issues/19#issuecomment-6277040341)):
+  the first C1 write in the running Desktop-embedded 2.1.284 session was not
+  denied; after a full Desktop restart the same session denied it. Startup
+  discovery of the new folder is the likely explanation, not a proven sole cause.
 - Codex reads `/etc/codex/requirements.toml` at startup, so the ChatGPT app must
   be restarted. Managed hooks are trusted by policy; there is no per-hook trust review.
 
@@ -111,7 +118,8 @@ sudo /usr/bin/install -d -o root -g wheel -m 0755 /etc/codex
 sudo /usr/bin/install -o root -g wheel -m 0644 /Library/BardWorkflowGate/installed/codex-requirements.toml /etc/codex/requirements.toml
 ```
 
-Claude Code last; the running Claude session picks it up when the file appears:
+Claude Code last. Do not rely on a running session picking it up; restart as
+described below before C1:
 
 ```bash
 sudo /usr/bin/install -d -o root -g wheel -m 0755 "/Library/Application Support/ClaudeCode"
@@ -139,7 +147,12 @@ hook ran, because no other hooks are configured.
 `CLAUDE_CODE_ENTRYPOINT` (expected `claude-desktop`) and the version in
 `CLAUDE_CODE_EXECPATH` (expected `2.1.284`).
 
-**Claude Code, after it, from the session's own unenrolled folder:**
+**Activation:** after the Claude step, fully quit and reopen the Claude desktop
+app and resume the same conversation. C1 must be denied by the installed entry
+before any other test. If C1 is not denied, stop: record the activation failure
+and do not continue to C2–C10.
+
+**Claude Code, after activation, from the session's own unenrolled folder:**
 
 | # | Action | Expected |
 | --- | --- | --- |
@@ -184,8 +197,9 @@ development checkout. Each policy-file removal first compares the file with the
 root-owned reference copy made at installation; if `cmp` reports a difference
 (or the reference is missing), nothing is removed. Stop and inspect by hand,
 because the installed file was changed after installation. `rmdir` only removes
-empty folders. Remove in this order, Claude Code first, which deactivates it in
-running sessions; the gate files, including the references, go last:
+empty folders. Remove in this order, Claude Code first; the gate files, including
+the references, go last. Removing the file does not prove a running session has
+unloaded the hook:
 
 ```bash
 cmp -s /Library/BardWorkflowGate/installed/claude-managed-settings.fragment.json "/Library/Application Support/ClaudeCode/managed-settings.json" && sudo rm "/Library/Application Support/ClaudeCode/managed-settings.json" && sudo rmdir "/Library/Application Support/ClaudeCode"
@@ -205,9 +219,14 @@ test ! -e "/Library/Application Support/ClaudeCode/managed-settings.json" && tes
 sudo -k
 ```
 
-Then restart the ChatGPT app and confirm the three `ls -ld` destinations are
-absent again. If an installed entry denies every Claude tool call (for example,
-a protection check fails), this rollback is the fix; it does not depend on Claude.
+Then confirm the three `ls -ld` destinations are absent again, fully quit and
+reopen both the Claude desktop app and the ChatGPT app, and record that you did.
+In each resumed conversation, a harmless read (Claude Read; a Codex file view)
+must work: a hook still pointing at the removed entry would exit 2 and block
+every call. That shows the removed entry is no longer run; it is not a
+vendor-confirmed unload. If an installed entry denies every Claude tool call
+(for example, a protection check fails), this rollback is the fix; it does not
+depend on Claude.
 The disposable `/tmp/wgp-live` folder can be removed afterwards.
 
 ## Known gaps (accepted for a practical guard)

@@ -315,6 +315,8 @@ class RunbookTests(unittest.TestCase):
         self.assertNotIn("merge the one hook", text)
         self.assertNotIn("ENROLL#", text)
         self.assertIn("verify_install.py installed", text)
+        self.assertNotIn("picks it up when the file appears", text)  # observed: needed a full Desktop restart
+        self.assertIn("If C1 is not denied, stop", text)
         removals = [line for line in text.splitlines()
                     if any(part.strip().startswith("sudo rm ") and ("ClaudeCode/managed-settings.json" in part or "/etc/codex/requirements.toml" in part) for part in line.split("&&"))]
         self.assertTrue(removals)
