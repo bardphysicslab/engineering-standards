@@ -200,6 +200,19 @@ class PathTests(GateCase):
             with self.subTest(str(target)):
                 self.assertDenied(self.run_hook("claude-code/write.json", self.write_payload(target)), "passes through symlink")
 
+    def test_hard_linked_target_denies(self):
+        # Review regression: an in-scope path hard-linked to guard settings shares its inode.
+        self.evidence()
+        settings = self.root / ".claude" / "settings.json"
+        settings.parent.mkdir()
+        settings.write_text("{}\n")
+        (self.root / "src" / "app.txt").unlink()
+        os.link(settings, self.root / "src" / "app.txt")
+        for fixture in ["claude-code/write.json", "claude-code/edit.json", "codex/apply_patch_update.json"]:
+            with self.subTest(fixture):
+                self.assertDenied(self.run_hook(fixture), "hard-linked file")
+        self.assertEqual(settings.read_text(), "{}\n")
+
     def test_guard_and_settings_targets_deny_even_with_broad_scope(self):
         self.evidence(scope=["*"])
         targets = {".claude/settings.json": ".claude/", ".codex/config.toml": ".codex/", "sub/.claude/hooks.json": ".claude/",

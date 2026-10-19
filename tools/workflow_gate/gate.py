@@ -205,6 +205,8 @@ def relative_target(target, cwd, repo):
     real = (top / rel).resolve()
     if real == top or top not in real.parents:
         raise Denied(f"{target} resolves outside the checkout")
+    if current.is_file() and current.stat().st_nlink > 1:
+        raise Denied(f"{target} is a hard-linked file; another path may share its contents")
     return rel
 
 

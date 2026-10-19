@@ -12,7 +12,9 @@
 - **Review round:** Codex requested changes on `6f9207d`
   ([review](https://github.com/bardphysicslab/engineering-standards/pull/20#issuecomment-6275783364)):
   symlink-plus-`..` escape and incomplete covered mappings. Both are corrected
-  here; the earlier handoff stays in history at that commit.
+  here; the earlier handoff stays in history at that commit. Re-review of
+  `3f3ee7e` ([finding](https://github.com/bardphysicslab/engineering-standards/pull/20#issuecomment-6275797492)):
+  an in-scope path hard-linked to guard settings was allowed; corrected here.
 - **Roles:** Claude implemented (sole writer). Codex reviews the exact head
   independently; this handoff is not a self-certification. The maintainer decides merge.
 
@@ -25,7 +27,7 @@
 | Covered coverage is structurally complete (review fix) | `check_evidence`, `decide` | Adapter tests (Claude Write and Codex apply_patch): disposition not `accepted`, refs empty/`""`/`null`, blank plan, missing/blank/`..` files deny; an in-scope target not in any covered item's `files` denies. Structural only |
 | Stale evidence | `check_evidence` | Tests: governing digest mismatch, expired approval, other checkout: deny |
 | Unapproved scope | `decide` | Tests: out-of-scope Write and second apply_patch target deny |
-| Traversal, symlinks, guard/settings tampering | `relative_target`, `guard_reason` | Tests: any `..` component denied before resolution, including the review's `src/link/../escaped.txt` via both adapters (no outside file created); absolute outside, symlink to `.claude/` and outside, `.claude/`, `.codex/`, nested `hooks.json`, `settings*.json`, `.git/`, gate files, evidence store, Move-to and Delete targets: deny with broad scope |
+| Traversal, symlinks, guard/settings tampering | `relative_target`, `guard_reason` | Tests: any `..` component denied before resolution, including the review's `src/link/../escaped.txt` via both adapters (no outside file created); existing hard-linked targets (review regression: `src/app.txt` linked to `.claude/settings.json`, Claude Write/Edit and Codex apply_patch; settings unchanged); absolute outside, symlink to `.claude/` and outside, `.claude/`, `.codex/`, nested `hooks.json`, `settings*.json`, `.git/`, gate files, evidence store, Move-to and Delete targets: deny with broad scope |
 | Missing reviewer and self-review | `check_review`, `record-review` | Tests: empty reviewer, reviewer = writer (case-insensitive), changes-requested, receipt inside checkout: fail |
 | Exact review includes dirty source | `review_state` | Tests: tracked dirty edit, untracked file, new commit each make the receipt stale |
 | Real JSON stdin/stdout/exit adapter tests | `adapters/*.py`, `gate.run_hook` | 16 doc-derived fixtures run as subprocesses; allow = exit 0, no output; deny = exit 2 + JSON + stderr; malformed input, internal error and missing gate module deny |
@@ -34,8 +36,9 @@
 | Focused CI | `.github/workflows/workflow-docs.yml` | New step runs `test_workflow_gate.py`; CI result is on the pull request |
 
 Local run at the branch head: `python3 -m unittest discover -s tests -p 'test_*.py'`
-37 tests OK; scaffold checker passed (Python 3.9, Git 2.50). The new regressions
-fail against the reviewed `gate.py` from `6f9207d` (10 failures) and pass with the fix.
+38 tests OK; scaffold checker passed (Python 3.9, Git 2.50). The new regressions
+fail against the reviewed `gate.py` from `6f9207d` (10 failures) and pass with the fix;
+the hard-link regression fails against `3f3ee7e` and passes with the fix.
 
 ## Architecture compliance (separate from behavior)
 
@@ -54,7 +57,8 @@ fail against the reviewed `gate.py` from `6f9207d` (10 failures) and pass with t
   `source` URL is not checked on GitHub, identities and role are unauthenticated labels.
 - Unhooked: already-running or external processes, Codex `write_stdin`, hosted
   tools, unmatched tools, hook timeout or kill handling, disabled hooks,
-  outside edits, Git operations, ignored files.
+  outside edits, Git operations, ignored files, and races between the check
+  and the write (links or files created or changed in between).
 - Semantic understanding of requirements is not checked; coverage checks are
   structural. `fnmatch` patterns let `*` match `/`.
 

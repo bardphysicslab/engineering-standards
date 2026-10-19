@@ -58,7 +58,7 @@ passes every check against the checkout the tool is actually in:
 
 Every target is resolved against the checkout. Any `..` component in the
 target or the working directory is denied before resolution; so are paths
-outside the checkout, any symlink on the path, and guard targets are denied even if the scope matches:
+outside the checkout, any symlink on the path, an existing hard-linked file, and guard targets are denied even if the scope matches:
 `.git/`, `.claude/`, `.codex/` at any depth, `hooks.json`, `settings*.json`,
 `tools/workflow_gate/`, the gate's own directory and the evidence store.
 
@@ -103,7 +103,9 @@ Not controlled by the prototype:
   timeout or kill;
 - disabled hooks, untrusted hook configuration, and settings or evidence
   edited from outside the session;
-- Git operations, ignored files and anything outside the checkout.
+- Git operations, ignored files and anything outside the checkout;
+- races: a symlink, hard link or file created or changed between the check and
+  the write, by the tool itself or any other process, is not caught.
 
 Denying shell makes the prototype impractical for real work by design.
 
