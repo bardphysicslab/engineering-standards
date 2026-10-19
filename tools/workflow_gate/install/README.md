@@ -82,6 +82,18 @@ sudo /usr/bin/install -o root -g wheel -m 0644 tools/workflow_gate/adapters/clau
 sudo /usr/bin/install -o root -g wheel -m 0644 /tmp/wgp-live/policy.json /Library/BardWorkflowGate/policy.json
 ```
 
+Keep root-owned reference copies of both hook configurations. Activation
+installs from these copies, and rollback compares against them, so rollback
+does not depend on this checkout staying unchanged:
+
+```bash
+sudo /usr/bin/install -d -o root -g wheel -m 0755 /Library/BardWorkflowGate/installed
+```
+
+```bash
+sudo /usr/bin/install -o root -g wheel -m 0644 tools/workflow_gate/install/claude-managed-settings.fragment.json tools/workflow_gate/install/codex-requirements.toml /Library/BardWorkflowGate/installed/
+```
+
 Before registering any hook, check the installed copy:
 
 ```bash
@@ -96,7 +108,7 @@ sudo /usr/bin/install -d -o root -g wheel -m 0755 /etc/codex
 ```
 
 ```bash
-sudo /usr/bin/install -o root -g wheel -m 0644 tools/workflow_gate/install/codex-requirements.toml /etc/codex/requirements.toml
+sudo /usr/bin/install -o root -g wheel -m 0644 /Library/BardWorkflowGate/installed/codex-requirements.toml /etc/codex/requirements.toml
 ```
 
 Claude Code last; the running Claude session picks it up when the file appears:
@@ -106,7 +118,7 @@ sudo /usr/bin/install -d -o root -g wheel -m 0755 "/Library/Application Support/
 ```
 
 ```bash
-sudo /usr/bin/install -o root -g wheel -m 0644 tools/workflow_gate/install/claude-managed-settings.fragment.json "/Library/Application Support/ClaudeCode/managed-settings.json"
+sudo /usr/bin/install -o root -g wheel -m 0644 /Library/BardWorkflowGate/installed/claude-managed-settings.fragment.json "/Library/Application Support/ClaudeCode/managed-settings.json"
 ```
 
 ```bash
@@ -167,23 +179,26 @@ shell in its own unenrolled workspace is not gated.
 
 ## Rollback (any time, in a terminal)
 
-New installation only. Each removal first checks the file is still exactly what
-was installed; if `cmp` reports a difference, nothing is removed. Stop and
-inspect by hand, because someone else changed it. `rmdir` only removes empty
-folders. Claude Code first, which deactivates it in running sessions:
+New installation only. Run from any directory; rollback does not use the
+development checkout. Each policy-file removal first compares the file with the
+root-owned reference copy made at installation; if `cmp` reports a difference
+(or the reference is missing), nothing is removed. Stop and inspect by hand,
+because the installed file was changed after installation. `rmdir` only removes
+empty folders. Remove in this order, Claude Code first, which deactivates it in
+running sessions; the gate files, including the references, go last:
 
 ```bash
-cmp -s tools/workflow_gate/install/claude-managed-settings.fragment.json "/Library/Application Support/ClaudeCode/managed-settings.json" && sudo rm "/Library/Application Support/ClaudeCode/managed-settings.json" && sudo rmdir "/Library/Application Support/ClaudeCode"
+cmp -s /Library/BardWorkflowGate/installed/claude-managed-settings.fragment.json "/Library/Application Support/ClaudeCode/managed-settings.json" && sudo rm "/Library/Application Support/ClaudeCode/managed-settings.json" && sudo rmdir "/Library/Application Support/ClaudeCode"
 ```
 
 ```bash
-cmp -s tools/workflow_gate/install/codex-requirements.toml /etc/codex/requirements.toml && sudo rm /etc/codex/requirements.toml && sudo rmdir /etc/codex
+cmp -s /Library/BardWorkflowGate/installed/codex-requirements.toml /etc/codex/requirements.toml && sudo rm /etc/codex/requirements.toml && sudo rmdir /etc/codex
 ```
 
-Gate files (they hold no one else's settings):
+Gate files, only after both policy files are gone (they hold no one else's settings):
 
 ```bash
-sudo rm -f /Library/BardWorkflowGate/approvals/evidence.json && sudo rm /Library/BardWorkflowGate/entry.py /Library/BardWorkflowGate/gate.py /Library/BardWorkflowGate/policy.json /Library/BardWorkflowGate/adapters/claude_code.py /Library/BardWorkflowGate/adapters/codex.py && sudo rmdir /Library/BardWorkflowGate/adapters /Library/BardWorkflowGate/approvals /Library/BardWorkflowGate
+test ! -e "/Library/Application Support/ClaudeCode/managed-settings.json" && test ! -e /etc/codex/requirements.toml && sudo rm -f /Library/BardWorkflowGate/approvals/evidence.json && sudo rm /Library/BardWorkflowGate/entry.py /Library/BardWorkflowGate/gate.py /Library/BardWorkflowGate/policy.json /Library/BardWorkflowGate/adapters/claude_code.py /Library/BardWorkflowGate/adapters/codex.py /Library/BardWorkflowGate/installed/claude-managed-settings.fragment.json /Library/BardWorkflowGate/installed/codex-requirements.toml && sudo rmdir /Library/BardWorkflowGate/adapters /Library/BardWorkflowGate/approvals /Library/BardWorkflowGate/installed /Library/BardWorkflowGate
 ```
 
 ```bash

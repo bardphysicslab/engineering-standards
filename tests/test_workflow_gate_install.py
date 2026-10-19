@@ -200,10 +200,50 @@ class VerifyInstallTests(EntryCase):
                 result = self.verify("policy", str(self.tmp / "bad.json"))
                 self.assertEqual(result.returncode, 1)
                 self.assertIn(reason, result.stderr)
+        self.assertEqual(self.verify("policy", str(self.policy_for(self.root))).returncode, 0)
+
+    def policy_for(self, path):
+        demo.write_json(self.tmp / "policy-check.json", {"schema": "workflow-gate-policy/1", "enrolled": [str(path)],
+                                                         "roles": {"claude-code": "writer", "codex": "reviewer"}})
+        return self.tmp / "policy-check.json"
+
+    def test_policy_check_asks_git_not_the_dot_git_entry(self):
+        cases = {}
+        bad_file = self.tmp / "bad-file"
+        bad_file.mkdir()
+        (bad_file / ".git").write_text("not a gitdir\n")
+        cases[bad_file] = "not a Git top level"
+        bad_dir = self.tmp / "bad-dir"
+        (bad_dir / ".git").mkdir(parents=True)
+        cases[bad_dir] = "not a Git top level"
+        nested = self.root / "src" / "nested"
+        (nested / ".git").mkdir(parents=True)
+        cases[nested] = "not a Git top level"  # Git reports the enclosing checkout
+        empty = self.tmp / "empty"
+        empty.mkdir()
+        demo.run_git(empty, "init", "-q")
+        cases[empty] = "has no commit"
+        for path, reason in cases.items():
+            with self.subTest(path.name):
+                result = self.verify("policy", str(self.policy_for(path)))
+                self.assertEqual(result.returncode, 1, result.stdout)
+                self.assertIn(reason, result.stderr)
+        worktree = self.tmp / "linked"
+        demo.run_git(self.root, "worktree", "add", "-q", "-b", "linked", str(worktree))
+        self.assertTrue((worktree / ".git").is_file())
+        result = self.verify("policy", str(self.policy_for(worktree.resolve())))
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_roles_policy(self):
         demo.write_json(self.tmp / "roles.json", {"schema": "workflow-gate-policy/1", "enrolled": [str(self.root)], "roles": {"claude-code": "writer", "codex": "writer"}})
         self.assertIn("roles must be", self.verify("policy", str(self.tmp / "roles.json")).stderr)
 
     def test_installed_check_requires_identical_protected_copies(self):
+        (self.install / "installed").mkdir()
+        for name in ["claude-managed-settings.fragment.json", "codex-requirements.toml"]:
+            shutil.copyfile(INSTALL / name, self.install / "installed" / name)
+            os.chmod(self.install / "installed" / name, 0o644)
+        os.chmod(self.install / "installed", 0o755)
         args = ["installed", "--install-dir", str(self.install), "--test-owner-uid", str(os.getuid())]
         ok = self.verify(*args)
         self.assertEqual(ok.returncode, 0, ok.stderr)
@@ -213,16 +253,73 @@ class VerifyInstallTests(EntryCase):
         self.assertIn("gate.py differs", self.verify(*args).stderr)
 
 
+class RollbackTests(unittest.TestCase):
+    """Runs the runbook's rollback commands against a disposable prefix (sudo removed, paths redirected)."""
+
+    def setUp(self):
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        self.tmp = Path(folder.name).resolve()
+        self.prefix = self.tmp / "system"
+        gate_dir = self.prefix / "Library" / "BardWorkflowGate"
+        for relative, source in {"entry.py": INSTALL / "entry.py", "gate.py": GATE / "gate.py",
+                                 "adapters/claude_code.py": GATE / "adapters" / "claude_code.py", "adapters/codex.py": GATE / "adapters" / "codex.py",
+                                 "installed/claude-managed-settings.fragment.json": INSTALL / "claude-managed-settings.fragment.json",
+                                 "installed/codex-requirements.toml": INSTALL / "codex-requirements.toml",
+                                 "policy.json": INSTALL / "policy.example.json"}.items():
+            (gate_dir / relative).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, gate_dir / relative)
+        (gate_dir / "approvals").mkdir()
+        self.claude = self.prefix / "Library" / "Application Support" / "ClaudeCode" / "managed-settings.json"
+        self.codex = self.prefix / "etc" / "codex" / "requirements.toml"
+        for target, name in [(self.claude, "claude-managed-settings.fragment.json"), (self.codex, "codex-requirements.toml")]:
+            target.parent.mkdir(parents=True)
+            shutil.copyfile(gate_dir / "installed" / name, target)  # activation installs from the reference copy
+        # A later, unrelated edit to the development sources: rollback must not depend on them.
+        self.work = self.tmp / "checkout"
+        for name in ["claude-managed-settings.fragment.json", "codex-requirements.toml"]:
+            changed = self.work / "tools" / "workflow_gate" / "install" / name
+            changed.parent.mkdir(parents=True, exist_ok=True)
+            changed.write_text((INSTALL / name).read_text() + "\n# later edit\n")
+
+    def commands(self):
+        section = (INSTALL / "README.md").read_text().split("## Rollback", 1)[1].split("\n## ", 1)[0]
+        blocks = [block.split("```", 1)[0].strip() for block in section.split("```bash\n")[1:]]
+        lines = [line for line in blocks if line != "sudo -k"]
+        self.assertEqual(len(lines), 3)
+        return [line.replace("sudo ", "").replace("/Library/", f"{self.prefix}/Library/").replace("/etc/codex", f"{self.prefix}/etc/codex")
+                for line in lines]
+
+    def run_line(self, line):
+        return subprocess.run(["/bin/bash", "-c", line], cwd=self.work, capture_output=True, text=True)
+
+    def test_rollback_removes_unchanged_install_even_after_source_edits(self):
+        for line in self.commands():
+            self.assertEqual(self.run_line(line).returncode, 0, line)
+        self.assertEqual(sorted(str(p.relative_to(self.prefix)) for p in self.prefix.rglob("*")),
+                         ["Library", "Library/Application Support", "etc"])
+
+    def test_rollback_refuses_settings_changed_after_installation(self):
+        self.claude.write_text(self.claude.read_text().replace('"timeout": 30', '"timeout": 30, "note": "added later"'))
+        claude_line, codex_line, gate_line = self.commands()
+        self.assertNotEqual(self.run_line(claude_line).returncode, 0)
+        self.assertIn("added later", self.claude.read_text())
+        self.assertEqual(self.run_line(codex_line).returncode, 0)
+        self.assertNotEqual(self.run_line(gate_line).returncode, 0)  # gate files stay while a policy file remains
+        self.assertTrue((self.prefix / "Library" / "BardWorkflowGate" / "installed" / "claude-managed-settings.fragment.json").exists())
+
+
 class RunbookTests(unittest.TestCase):
     def test_runbook_is_new_install_only_with_guarded_rollback(self):
         text = (INSTALL / "README.md").read_text()
         self.assertNotIn("merge the one hook", text)
         self.assertNotIn("ENROLL#", text)
         self.assertIn("verify_install.py installed", text)
-        removals = [line for line in text.splitlines() if "sudo rm " in line and ("managed-settings.json" in line or "requirements.toml" in line)]
+        removals = [line for line in text.splitlines()
+                    if any(part.strip().startswith("sudo rm ") and ("ClaudeCode/managed-settings.json" in part or "/etc/codex/requirements.toml" in part) for part in line.split("&&"))]
         self.assertTrue(removals)
         for line in removals:
-            self.assertTrue(line.lstrip().startswith("cmp -s "), line)
+            self.assertTrue(line.lstrip().startswith("cmp -s /Library/BardWorkflowGate/installed/"), line)
 
 
 class ConfigProposalTests(unittest.TestCase):
