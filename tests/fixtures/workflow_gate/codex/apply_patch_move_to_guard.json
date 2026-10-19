@@ -1,0 +1,14 @@
+{
+  "session_id": "fixture-session",
+  "transcript_path": null,
+  "cwd": "{REPO}",
+  "hook_event_name": "PreToolUse",
+  "model": "fixture-model",
+  "permission_mode": "default",
+  "turn_id": "turn-fixture",
+  "tool_use_id": "call_fixture",
+  "tool_name": "apply_patch",
+  "tool_input": {
+    "command": "*** Begin Patch\n*** Update File: src/app.txt\n*** Move to: .codex/hooks.json\n@@\n-hello\n+{}\n*** End Patch\n"
+  }
+}
