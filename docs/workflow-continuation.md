@@ -30,3 +30,25 @@ merge stage. Read the latest linked issue checkpoint before resuming.
 - Adoption gaps: existing consumers are not mass-migrated; operational successor
   ownership/access is not audited or changed; automated enforcement is a small
   completeness check, not proof of design correctness.
+
+## October 19, 2026 — module organization and checkout synchronization (ENG-003)
+
+- Tracker: [engineering-standards#17](https://github.com/bardphysicslab/engineering-standards/issues/17);
+  decision [ENG-003](https://github.com/bardphysicslab/engineering-standards/issues/17#issuecomment-6269649466).
+  Platform companion: BardBox milestone OCT19-DOCS-1 in
+  [bardbox#31](https://github.com/bardphysicslab/bardbox/issues/31).
+- Baseline/shared guidance: `2cb958318b5b603b2b250c351425212e10a64fed`.
+- Canonical checkout: engineering-standards, branch `codex/module-checkout-guidance`;
+  implementer Claude (sole writer), reviewer Codex. Exact head and PR are recorded
+  in the PR and the issue.
+- Scope: `checkouts-and-worktrees.md` rule 12 (idle definition, fast-forward
+  only, deployments separate, extra clones need a role, mirrors deferred);
+  `agent-practice.md` module organization, smallest safe slices and scope-first
+  review; ENG-003 index row. Rule numbers 1 to 11 are unchanged.
+- Consumer and skill impact: consumers already link these files; no copies to
+  update. The BardBox repository-layout standard links ENG-003 for its platform
+  module names. Coordination skills that describe checkout cleanup should be
+  checked for drift after merge; none are changed here.
+- Verification: workflow checker and its unit test; independent review pending.
+  No automation, host access, cleanup, merge or deployment.
+- Next owner/action: Codex reviews the exact head; maintainer decides merge.
