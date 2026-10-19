@@ -66,6 +66,19 @@ the recovery checkpoint, not to continue generating ever-larger changes.
   need for it.
 - Keep secrets and credentials out of source control.
 
+## Module organization
+
+New reference structures name folders and code after documented module
+responsibilities, so a reader can find a module (for example Processing or Time)
+directly; each module's configuration lives in its own subtree where the owning
+repository's architecture says so. Shared time *mechanisms* (clocks, deadlines,
+schedulers) belong in a common Time utility; module-specific scheduling *policy*
+stays with the owning module. Avoid empty nesting for trivial code, and link a
+shared implementation by its documented source instead of copying it to fill a
+folder. A folder layout alone does not prove dependency boundaries. Existing
+projects are not reorganized by this rule; project architecture documents name
+their own modules. Decision: [ENG-003](https://github.com/bardphysicslab/engineering-standards/issues/17#issuecomment-6269649466).
+
 ## Verification and documentation
 
 - Add or update focused tests when changed behavior warrants them. Avoid
@@ -160,6 +173,10 @@ authorized, the check informs that work; it is not an additional approval step.
 
 ## Refactoring with little test coverage
 
+- Refactor in the smallest safe slice and verify each slice before the next:
+  one responsibility at a time, going smaller (for example extracting a pure
+  function first) when a module-sized step feels risky. Each commit should be a
+  useful checkpoint.
 - Refactor in small steps that leave the application working. Where practical,
   keep structural changes (extract, move, rename, rewire) in separate commits
   from behavior or business-rule changes; when they must be combined, say so
@@ -170,6 +187,11 @@ authorized, the check informs that work; it is not an additional approval step.
 - A characterization test records current behavior, not intended behavior. If
   current behavior looks wrong or conflicts with a requirement, label it and
   report it rather than changing it inside the refactor.
+- Reviewers check scope before content: start from the changed-file summary
+  (for example `git diff --stat`) to spot an unexpectedly broad change, then read
+  every changed file against the agreed scope, watching threshold checks, error
+  handling and timing in particular. A file count alone proves nothing about
+  preserved behavior.
 - Make a dependency explicit (a parameter, or an injected clock, transport or
   store) when a concrete test needs to control it. Do not add interfaces,
   frameworks or layers for flexibility nobody has asked for; a plain function or

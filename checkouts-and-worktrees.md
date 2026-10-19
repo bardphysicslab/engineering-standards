@@ -196,3 +196,25 @@ documentation and the current Codex app. Recheck it when either tool changes.
     or ignored build outputs. Name stores by role in public
     repositories, not by private path. Never commit secrets or private data
     to preserve them (rule 6).
+12. **Keeping idle canonical checkouts current** ([ENG-003](https://github.com/bardphysicslab/engineering-standards/issues/17#issuecomment-6269649466)).
+    - A canonical checkout is **idle** when it is on `main`, has no
+      uncommitted, untracked or ignored unique work, and no session, worktree
+      or process claims it. A checkout on a feature branch, or one another
+      session has been using, is not idle even if it looks clean.
+    - Refresh remote knowledge (`git fetch`) routinely. Advance an idle
+      checkout to the remote `main` by **fast-forward only**. Never switch
+      branches, reset, stash, overwrite local or untracked work, or interrupt
+      an active writer to synchronize. A checkout that has diverged needs an
+      explicit resolution, not forced synchronization.
+    - Active feature checkouts are intentional exceptions; they are reconciled
+      at task closeout under rule 10.
+    - Code that a running service uses is advanced only as a deployment, with
+      its authorization and recovery path. Application hosts should record the
+      revision they run, so an intentional pinned release is distinguishable
+      from unexplained drift.
+    - Additional working clones (for example on a shared lab server) need a
+      concrete build, test or runtime role; without one, do not create them.
+      Automated off-machine mirrors are a deferred idea: a mirror is not a
+      versioned backup and does not preserve uncommitted work.
+    - This rule records the safe manual practice. It does not create or
+      authorize synchronization automation, host access or cleanup.
