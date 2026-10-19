@@ -1,0 +1,5 @@
+{
+  "schema": "workflow-gate-policy/1",
+  "enrolled": ["/absolute/path/to/disposable/fixture/repo"],
+  "roles": {"claude-code": "writer", "codex": "reviewer"}
+}

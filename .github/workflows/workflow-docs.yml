@@ -15,4 +15,4 @@ jobs:
           python3 scripts/check_workflow_docs.py
           python3 -m unittest discover -s tests -p test_workflow_docs.py
       - name: Test workflow gate prototype (not installed)
-        run: python3 -m unittest discover -s tests -p test_workflow_gate.py
+        run: python3 -m unittest discover -s tests -p 'test_workflow_gate*.py'

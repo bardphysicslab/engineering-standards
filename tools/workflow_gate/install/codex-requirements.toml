@@ -1,0 +1,16 @@
+# Workflow gate (ENG-004) managed hook for Codex. Installed only as a new
+# /etc/codex/requirements.toml; an existing file must be merged by hand.
+[features]
+hooks = true
+
+[hooks]
+managed_dir = "/Library/BardWorkflowGate"
+
+[[hooks.PreToolUse]]
+matcher = ".*"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = "/usr/bin/python3 -I /Library/BardWorkflowGate/entry.py codex"
+timeout = 30
+statusMessage = "Workflow gate"
