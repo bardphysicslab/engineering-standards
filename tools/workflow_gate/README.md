@@ -109,9 +109,9 @@ Not controlled by the prototype:
 
 Denying shell makes the prototype impractical for real work by design.
 
-## Before any installation
+## Installation package
 
-Installation is not authorized. It would need a protected policy, scripts and
-approval store that the writer cannot change; managed hook configuration for
-each runtime; negative live tests against the exact runtime versions; and a
-separate accepted decision.
+A prepared, reviewable package (protected entry, managed-configuration
+proposals, disposable live fixture, manual install and rollback runbook and
+known gaps) is in [install/README.md](install/README.md). It is not installed
+and not live-tested; apply it only after an exact-revision review.

@@ -1,0 +1,73 @@
+# Claude handoff: workflow gate setup package
+
+- **Milestone:** `WGP-SETUP-1`, ENG-004 installation/test package.
+- **Status:** PREPARED; awaiting Codex exact-revision review. Not installed, not
+  live-tested, not merged.
+- **Owner:** [#19](https://github.com/bardphysicslab/engineering-standards/issues/19):
+  [setup/test authorization](https://github.com/bardphysicslab/engineering-standards/issues/19#issuecomment-6275981244),
+  [acceptance change](https://github.com/bardphysicslab/engineering-standards/issues/19#issuecomment-6276212711)
+  (useful scoped guard with known gaps). PR [#20](https://github.com/bardphysicslab/engineering-standards/pull/20).
+- **Branch:** `codex/workflow-gate-prototype`; reviewed prototype baseline
+  `4831c6f3b3f0f8865402d205f4b5a73361af1e37`. The exact head is recorded in the PR.
+- **Shared guidance:** bardphysicslab/engineering-standards@aa8454649fc2e8bb5ad50a5829f8d0cbda736442
+- **BardBox standards:** bardphysicslab/bardbox@34b8ae6e7a9ee3340093b6091df7acfd97578b83
+- **Roles:** Claude sole writer; Codex reviews; Kornelis applies any system change.
+- **Previous milestone:** [prototype handoff](archive/CLAUDE-HANDOFF-WGP-PROTOTYPE.md).
+
+## Refusal recorded
+
+Writing an installer script was refused by Claude's session safety check as
+self-modification. That was respected: no installer exists, and no other tool
+or agent was asked to write one. The runbook gives Kornelis manual `sudo` steps
+instead. Nothing on this machine was installed or changed.
+
+## Runtime and policy facts (read-only probes, 2026-10-19)
+
+- Active Claude session: Desktop-embedded Claude Code 2.1.284 (Desktop 2.16120.0).
+  The separate Homebrew CLI is 2.1.267.
+- Codex: the CLI bundled in the ChatGPT app reports `codex-cli 0.163.0-alpha.10.2`
+  and `hooks` stable/on. That does not show hooks active in the running chat.
+- No MDM enrollment. No Claude Code managed settings, no `/etc/codex`, no user
+  Claude settings file, no Codex hooks. The account is a local administrator.
+- Vendor docs: Claude Code file-based managed settings reload in running
+  sessions; Codex requirements load at startup (restart). `onFailure: "block"`
+  needs Claude Code 2.1.295 or later, and Codex continues on failed hooks.
+
+## Behavior checked (synthetic tests, no live runtime)
+
+| Requirement | Evidence | Result |
+| --- | --- | --- |
+| Missing evidence denies; approved scoped edit allowed | Entry subprocess with disposable install dir | Pass |
+| Writer cannot choose role, evidence file or clock | Env overrides of role, store and time ignored | Pass |
+| Stale, malformed, missing or conflicting coverage, and self-approval deny | Entry tests and live-fixture drafts | Pass |
+| Guard tamper, shell, background, MCP and unknown deny in enrolled checkout | Entry tests | Pass |
+| Unprotected install denies | Not root-owned; writable policy or store; symlinked store; malformed policy | Pass |
+| Unenrolled session passes through; enrolled write target still checked | Entry tests | Pass, with the Bash gap shown |
+| Config proposals call `python3 -I` entry and add no other keys | Fragment tests | Pass |
+
+`python3 -m unittest discover -s tests -p 'test_*.py'`: 49 tests OK (36 prototype, 2 scaffold,
+11 package); the scaffold checker passed; CI runs both gate suites.
+
+## Architecture compliance
+
+- The reviewed `gate.py` and adapters are unchanged; `install/entry.py` wraps them.
+- Proposed config adds only one PreToolUse hook per runtime; no permission,
+  sandbox, `allowManagedHooksOnly` or other policy change.
+- One rule owner: decision index row updated, no duplicate rulebook; the prototype
+  handoff was archived, not rewritten.
+
+## Gaps (accepted for a practical guard)
+
+Crash or timeout fails open in both runtimes; unenrolled shell can change
+enrolled files; prior and persistent processes, Codex `write_stdin`, hosted or
+specialized tools are unhooked; check-to-write races; approver and writer are
+labels, so independence rests on Kornelis's protected copy; any administrator or
+cached `sudo` credential can change the store or policy. Details:
+[install/README.md](../tools/workflow_gate/install/README.md#known-gaps-accepted-for-a-practical-guard).
+
+## Next action
+
+1. Codex reviews the exact PR head.
+2. Kornelis then runs the [install steps](../tools/workflow_gate/install/README.md#install-kornelis-after-review-of-commit-c)
+   for that commit, then live tests L1–L6, and records the outcomes in #19.
+   Rollback is in the same runbook.

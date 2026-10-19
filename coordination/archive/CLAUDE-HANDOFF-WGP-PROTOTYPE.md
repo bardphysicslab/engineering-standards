@@ -1,4 +1,8 @@
-# Claude handoff: workflow gate prototype
+# Claude handoff: workflow gate prototype (archived)
+
+Archived record. Codex reviewed `4831c6f3b3f0f8865402d205f4b5a73361af1e37` as passing
+([review](https://github.com/bardphysicslab/engineering-standards/pull/20#issuecomment-6275876684)).
+The current handoff is [../CLAUDE-HANDOFF.md](../CLAUDE-HANDOFF.md).
 
 - **Milestone:** ENG-004 workflow gate prototype (WGP). NOT INSTALLED.
 - **Owning issue:** [#19](https://github.com/bardphysicslab/engineering-standards/issues/19);
@@ -48,7 +52,7 @@ the hard-link regression fails against `3f3ee7e` and passes with the fix.
   application or Registry code; no merge or deployment.
 - Decision index row added to the existing `docs/DECISIONS.md`; README pointer;
   no duplicate rulebook.
-- Coverage report and unhooked paths: [guide](../tools/workflow_gate/README.md#coverage).
+- Coverage report and unhooked paths: [guide](../../tools/workflow_gate/README.md#coverage).
 
 ## Not verified or not covered
 
