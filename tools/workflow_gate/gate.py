@@ -127,23 +127,29 @@ def check_evidence(evidence, repo, at):
     mapping = evidence.get("mapping")
     if not isinstance(mapping, list) or not mapping:
         raise Denied("requirements mapping is missing; coding is blocked until it is recorded and accepted")
-    questions = []
+    questions, covered = [], []
     for index, item in enumerate(mapping):
         requirement = text_field(item, "requirement", f"mapping[{index}]")
         status = item.get("status")
         if status not in STATUSES:
             raise Denied(f"mapping[{index}] status must be covered, missing or conflicting")
         if status == "covered":
-            text_field(item, "disposition", f"mapping[{index}]")
-            if not isinstance(item.get("refs"), list) or not item["refs"]:
+            if item.get("disposition") != "accepted":
+                raise Denied(f"mapping[{index}] is covered but its disposition is not accepted")
+            refs = item.get("refs")
+            if not isinstance(refs, list) or not refs or not all(isinstance(ref, str) and ref.strip() for ref in refs):
                 raise Denied(f"mapping[{index}] is covered but cites no owner/interface/invariant/guidance reference")
+            text_field(item, "plan", f"mapping[{index}]")
+            if not patterns(item.get("files")):
+                raise Denied(f"mapping[{index}].files must list the repository-relative files this requirement changes")
+            covered.append(item)
         else:
             questions.append(f"[{status}] {requirement}: {text_field(item, 'question', f'mapping[{index}]')}")
     if questions:
         raise Denied(f"coding is blocked; questions for {QUESTION_TO}: " + " | ".join(questions))
 
     scope = evidence.get("scope")
-    if not isinstance(scope, list) or not scope or not all(isinstance(p, str) and p and not p.startswith("/") and ".." not in p.split("/") for p in scope):
+    if not patterns(scope):
         raise Denied("evidence.scope must list repository-relative patterns")
 
     writer = text_field(evidence, "writer", "evidence")
@@ -158,13 +164,21 @@ def check_evidence(evidence, repo, at):
     expires_at = parse_time(approval.get("expires_at"), "approval.expires_at")
     if not approved_at <= at < expires_at:
         raise Denied(f"stale approval: valid {approved_at.isoformat()} to {expires_at.isoformat()}, now {at.isoformat()}")
-    return scope
+    return scope, covered
+
+
+def patterns(value):
+    """True for a non-empty list of repository-relative fnmatch patterns."""
+    return isinstance(value, list) and bool(value) and all(
+        isinstance(p, str) and p.strip() and not p.startswith("/") and ".." not in p.split("/") for p in value)
 
 
 def relative_target(target, cwd, repo):
     """Repository-relative path for `target`; denies traversal and symlink aliases."""
     if not isinstance(target, str) or not target:
         raise Denied("write target path is missing")
+    if ".." in Path(target).parts or ".." in Path(cwd).parts:
+        raise Denied(f"{target} uses parent traversal (..), which is denied before path resolution")
     top = Path(repo["toplevel"])
     path = Path(os.path.normpath(Path(cwd) / target))
     roots = [top]
@@ -188,6 +202,9 @@ def relative_target(target, cwd, repo):
         current = current / part
         if current.is_symlink():
             raise Denied(f"{target} passes through symlink {current.relative_to(top).as_posix()}")
+    real = (top / rel).resolve()
+    if real == top or top not in real.parents:
+        raise Denied(f"{target} resolves outside the checkout")
     return rel
 
 
@@ -224,7 +241,7 @@ def decide(kind, targets, cwd, env):
         raise Denied("WORKFLOW_GATE_ROLE must be writer for edits")
     repo = observe(cwd)
     store = evidence_path(repo, env)
-    scope = check_evidence(load_json(store, "write evidence"), repo, now(env))
+    scope, covered = check_evidence(load_json(store, "write evidence"), repo, now(env))
     if not targets:
         raise Denied("edit names no target path")
     top = Path(repo["toplevel"])
@@ -235,6 +252,8 @@ def decide(kind, targets, cwd, env):
             raise Denied(f"{rel.as_posix()}: {reason}")
         if not any(fnmatch.fnmatchcase(rel.as_posix(), pattern) for pattern in scope):
             raise Denied(f"{rel.as_posix()} is outside the approved scope")
+        if not any(fnmatch.fnmatchcase(rel.as_posix(), pattern) for item in covered for pattern in item["files"]):
+            raise Denied(f"{rel.as_posix()} is not mapped to any covered requirement")
     return None
 
 

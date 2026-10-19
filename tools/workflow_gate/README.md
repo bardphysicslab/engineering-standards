@@ -42,19 +42,23 @@ passes every check against the checkout the tool is actually in:
 - `baseline` is a full commit SHA and an ancestor of `HEAD`.
 - each `governing` entry names a repository, commit and SHA-256 digests of the
   governing files; digests are recomputed with `git show`.
-- `mapping` lists every requirement as `covered` (with a disposition and
-  owner/interface/invariant/guidance `refs`), `missing` or `conflicting`. Any
-  missing or conflicting item denies coding and returns its `question` for
-  Codex and Kornelis.
+- `mapping` lists every requirement as `covered`, `missing` or `conflicting`.
+  A covered item needs `disposition: "accepted"`, nonblank string
+  owner/interface/invariant/guidance `refs`, a nonblank `plan` and `files`
+  patterns for the files it changes. Any missing or conflicting item denies
+  coding and returns its `question` for Codex and Kornelis. These checks are
+  structural only; they do not show the requirements were understood.
 - `scope` lists repository-relative `fnmatch` patterns (`*` also matches `/`).
+  Each target must match the scope and the `files` of a covered item.
 - `approval` names an `approver` other than the `writer`, a `source` (for
   example the accepted issue entry), `approved_at`, `expires_at` and a `digest`
   (`gate.py digest <file>`) over the whole approved premise. Any later change
   to the mapping, scope, baseline, governing digests, writer or approval
   makes it stale.
 
-Every target is resolved against the checkout. Traversal outside it, any
-symlink on the path, and guard targets are denied even if the scope matches:
+Every target is resolved against the checkout. Any `..` component in the
+target or the working directory is denied before resolution; so are paths
+outside the checkout, any symlink on the path, and guard targets are denied even if the scope matches:
 `.git/`, `.claude/`, `.codex/` at any depth, `hooks.json`, `settings*.json`,
 `tools/workflow_gate/`, the gate's own directory and the evidence store.
 

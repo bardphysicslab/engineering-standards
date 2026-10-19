@@ -94,7 +94,8 @@ class EvidenceTests(GateCase):
 
     def test_missing_and_conflicting_items_return_questions(self):
         mapping = [
-            {"requirement": "Greeting text", "status": "covered", "disposition": "accepted", "refs": ["docs/guide.md"]},
+            {"requirement": "Greeting text", "status": "covered", "disposition": "accepted", "refs": ["docs/guide.md"],
+             "plan": "Edit src/app.txt", "files": ["src/app.txt"]},
             {"requirement": "Greeting language", "status": "missing", "question": "Which language is accepted?"},
             {"requirement": "Greeting owner", "status": "conflicting", "question": "Which owner wins?"},
         ]
@@ -104,9 +105,40 @@ class EvidenceTests(GateCase):
         self.assertIn("[missing] Greeting language: Which language is accepted?", result.stderr)
         self.assertIn("[conflicting] Greeting owner: Which owner wins?", result.stderr)
 
-    def test_covered_item_without_reference_denies(self):
-        self.evidence(mapping=[{"requirement": "Greeting", "status": "covered", "disposition": "accepted", "refs": []}])
-        self.assertDenied(self.run_hook("claude-code/write.json"), "cites no owner")
+    def test_missing_baseline_denies(self):
+        evidence = demo.make_evidence(self.root, self.baseline, sign=False)
+        del evidence["baseline"]
+        evidence["approval"]["digest"] = gate.approval_digest(evidence)
+        demo.write_json(self.store, evidence)
+        self.assertDenied(self.run_hook("claude-code/write.json"), "evidence.baseline is missing")
+
+    def test_incomplete_covered_items_deny(self):
+        complete = {"requirement": "Greeting", "status": "covered", "disposition": "accepted",
+                    "refs": ["docs/guide.md: accepted rule"], "plan": "Edit src/app.txt", "files": ["src/app.txt"]}
+        cases = {
+            "disposition rejected": ({"disposition": "rejected"}, "disposition is not accepted"),
+            "no disposition": ({"disposition": None}, "disposition is not accepted"),
+            "no refs": ({"refs": []}, "cites no owner"),
+            "blank ref": ({"refs": [""]}, "cites no owner"),
+            "null ref": ({"refs": [None]}, "cites no owner"),
+            "no plan": ({"plan": " "}, ".plan is missing"),
+            "no files": ({"files": []}, ".files must list"),
+            "blank file": ({"files": [""]}, ".files must list"),
+            "file traversal": ({"files": ["../src/app.txt"]}, ".files must list"),
+        }
+        for name, (change, reason) in cases.items():
+            with self.subTest(name):
+                self.evidence(mapping=[{**complete, **change}])
+                for fixture in ["claude-code/write.json", "codex/apply_patch_update.json"]:
+                    self.assertDenied(self.run_hook(fixture), reason)
+
+    def test_target_must_map_to_a_covered_requirement(self):
+        mapping = [{"requirement": "Greeting", "status": "covered", "disposition": "accepted",
+                    "refs": ["docs/guide.md"], "plan": "Edit src/app.txt", "files": ["src/app.txt"]}]
+        self.evidence(mapping=mapping)
+        self.assertAllowed(self.run_hook("claude-code/write.json"))
+        result = self.run_hook("claude-code/write.json", self.write_payload(self.root / "src" / "other.txt"))
+        self.assertDenied(result, "src/other.txt is not mapped to any covered requirement")
 
     def test_mapping_changed_after_approval_denies(self):
         evidence = demo.make_evidence(self.root, self.baseline)
@@ -143,9 +175,22 @@ class PathTests(GateCase):
 
     def test_traversal_and_outside_paths_deny(self):
         self.evidence(scope=["*"])
-        for target in [f"{self.root}/src/../../escape.txt", str(self.tmp / "escape.txt"), "../escape.txt"]:
+        for target in [f"{self.root}/src/../../escape.txt", "../escape.txt", "src/../src/app.txt"]:
             with self.subTest(target):
-                self.assertDenied(self.run_hook("claude-code/write.json", self.write_payload(target)), "outside the checkout")
+                self.assertDenied(self.run_hook("claude-code/write.json", self.write_payload(target)), "parent traversal")
+        self.assertDenied(self.run_hook("claude-code/write.json", self.write_payload(self.tmp / "escape.txt")), "outside the checkout")
+
+    def test_parent_traversal_through_symlink_cannot_escape(self):
+        # Review regression: normalizing src/link/../x hid the symlink, while the OS resolves link first.
+        self.evidence()
+        outside = self.tmp / "outside" / "deep"
+        outside.mkdir(parents=True)
+        (self.root / "src" / "link").symlink_to(outside, target_is_directory=True)
+        patch = json.loads(self.fixture("codex/apply_patch_update.json"))
+        patch["tool_input"]["command"] = "*** Begin Patch\n*** Add File: src/link/../escaped.txt\n+escaped\n*** End Patch\n"
+        self.assertDenied(self.run_hook("codex/x", patch), "parent traversal")
+        self.assertDenied(self.run_hook("claude-code/write.json", self.write_payload(f"{self.root}/src/link/../escaped.txt")), "parent traversal")
+        self.assertFalse((self.tmp / "outside" / "escaped.txt").exists())
 
     def test_symlink_aliases_deny(self):
         self.evidence(scope=["*"])
