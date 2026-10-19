@@ -1,0 +1,14 @@
+{
+  "session_id": "fixture-session",
+  "transcript_path": null,
+  "cwd": "{REPO}",
+  "hook_event_name": "PreToolUse",
+  "model": "fixture-model",
+  "permission_mode": "default",
+  "turn_id": "turn-fixture",
+  "tool_use_id": "call_fixture",
+  "tool_name": "exec_command",
+  "tool_input": {
+    "command": "printf 'hello\\n' > src/app.txt"
+  }
+}

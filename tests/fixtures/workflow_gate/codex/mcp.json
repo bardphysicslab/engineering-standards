@@ -1,0 +1,14 @@
+{
+  "session_id": "fixture-session",
+  "transcript_path": null,
+  "cwd": "{REPO}",
+  "hook_event_name": "PreToolUse",
+  "model": "fixture-model",
+  "permission_mode": "default",
+  "turn_id": "turn-fixture",
+  "tool_use_id": "call_fixture",
+  "tool_name": "mcp__fixture__search",
+  "tool_input": {
+    "query": "fixture"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "session_id": "fixture-session",
+  "transcript_path": "/fixture/transcript.jsonl",
+  "cwd": "{REPO}",
+  "permission_mode": "default",
+  "hook_event_name": "PreToolUse",
+  "tool_use_id": "toolu_fixture",
+  "tool_name": "Read",
+  "tool_input": {
+    "file_path": "{REPO}/docs/guide.md"
+  }
+}
