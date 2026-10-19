@@ -221,10 +221,9 @@ sudo -k
 
 Then confirm the three `ls -ld` destinations are absent again, fully quit and
 reopen both the Claude desktop app and the ChatGPT app, and record that you did.
-In each resumed conversation, a harmless read (Claude Read; a Codex file view)
-must work: a hook still pointing at the removed entry would exit 2 and block
-every call. That shows the removed entry is no longer run; it is not a
-vendor-confirmed unload. If an installed entry denies every Claude tool call
+A hook-covered call that works afterwards (for example a Claude Read) is only a
+sanity observation, not proof that the hook was unloaded: hosted, specialized or
+unmatched tool paths may never reach a hook. If an installed entry denies every Claude tool call
 (for example, a protection check fails), this rollback is the fix; it does not
 depend on Claude.
 The disposable `/tmp/wgp-live` folder can be removed afterwards.
