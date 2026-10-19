@@ -21,6 +21,8 @@ Keep these diagrams with the workflow; this opening page links to that maintaine
 See the [decision index](docs/DECISIONS.md) for accepted choices and their
 authoritative reasoning. The [workflow hardening record](docs/workflow-continuation.md)
 tracks adoption and review gaps.
+The [workflow gate prototype](tools/workflow_gate/README.md) (ENG-004) is
+NOT INSTALLED; its guide states what it checks and what it does not cover.
 
 ## Human overview
 
